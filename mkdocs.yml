@@ -1,0 +1,8 @@
+site_name: 强化学习笔记
+theme:
+  name: material
+
+nav:
+  - 首页: index.md
+  - 序言: Ch0_Preface.md
+  - 第一章: Ch1_Introduction.md
