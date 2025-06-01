@@ -12,13 +12,15 @@
         <link rel="prev" href="../Ch0_Preface/">
       
       
+        <link rel="next" href="../Ch2_Multi-armed_Bandits/">
+      
       
       <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
     
     
       
-        <title>第一章 - 强化学习笔记</title>
+        <title>第一章-引言 - 强化学习笔记</title>
       
     
     
@@ -96,7 +98,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              第一章
+              第一章-引言
             
           </span>
         </div>
@@ -250,7 +252,7 @@
   
   
   <span class="md-ellipsis">
-    第一章
+    第一章-引言
     
   </span>
   
@@ -263,7 +265,7 @@
   
   
   <span class="md-ellipsis">
-    第一章
+    第一章-引言
     
   </span>
   
@@ -523,6 +525,50 @@
   
 </nav>
       
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Ch2_Multi-armed_Bandits/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    第二章-多臂老虎机
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../math_test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    数学公式测试
+    
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -898,9 +944,9 @@
 </code></pre>
 <p>（2）状态a -&gt; 状态b</p>
 <p>对方先走了一步，也就是a-&gt;b的黑实线，将X落在格子5的中心位置：</p>
-<pre><code>···
+<pre><code>· · ·
 · X ·
-···
+· · ·
 </code></pre>
 <p>当对方的这个子落下来后，就形成了一个新的棋盘状态，这就是状态b。从状态的角度理解的话，就是这里发生了状态a到状态b的转移，在这个转移过程中，我们不学习，因为是对手走的子。</p>
 <p>（3）状态b -&gt; 状态c*</p>
@@ -962,9 +1008,9 @@
 </tbody>
 </table>
 <p>这张假设的表中，对应的价值就是新的状态下表中已经记录的价值。然后我们可以发现位置2对应的后继状态c2的估计价值最高，因此c7就是c*，然后我们这一步选择greedy策略，就按照价值最高的来，棋盘就变成了下面这样，然后我们的状态也就在转移到了c*：</p>
-<pre><code>···
+<pre><code>· · ·
 · X ·
- O··
+O · ·
 </code></pre>
 <p>在这里，我们选择了最优策略，这里学习一个新的概念，就是agent在这里做了一次决策，并且选择了最优决策，我们暂且把这种并非对手出子、并且选择最优值函数而进行的greedy操作视为一次真正的决策。</p>
 <p>在这次决策后，有一条从c指向a的红色箭头线，这个线代表着值更新。在刚才的过程中，我们经历了状态a到状态c的转移，而状态c是通过greedy策略到达的，我们在这里对a进行一次值的更新，让状态a的估值向状态c的估值靠拢：</p>
@@ -974,26 +1020,26 @@
 <p>假设α是0.1，那么我们就可以根据刚才那张表来算出来新的V(a)。在这个过程中，c状态作为一个a状态后面的状态，对a产生了影响，因此这是一种值回传（back up）。</p>
 <p>（4）状态c*到状态d</p>
 <p>对手走了一步，假设对手走的如下：</p>
-<pre><code> X ··
+<pre><code>X · ·
 · X ·
- O··
+O · ·
 </code></pre>
 <p>（5）状态d到状态e</p>
 <p>根据图中所示，这是一步探索性的动作，因为没有选择最优值。</p>
 <p>在本案例中，这种探索性的动作下不进行值的更新。这其实是一种on-policy（策略内）的学习策略，就是说agent只通过自身正在执行的策略来评估和改善值函数。同时，agent不需要预先知道对手策略或者状态转移概率模型，而是通过对局获得经验，从而不断更新值表，因此这又属于一种model-free（无模型）的策略。在后面的学习中，我们还会学习不同于此的策略或者范式，这里只是作为一种概念展示来说明强化学习的思维方式。</p>
-<pre><code> X ··
+<pre><code>X · ·
 · X ·
- O· O
+O · O
 </code></pre>
 <p>（6）状态e到状态f</p>
-<pre><code> X · X
+<pre><code>X · X
 · X ·
- O· O
+O · O
 </code></pre>
 <p>（7）状态f到状态g*</p>
-<pre><code> X · X
+<pre><code>X · X
 · X ·
- O O O
+O O O
 </code></pre>
 <p>至此，对局结束。由于这里选择了最优策略，所以对e进行值更新，我们在这里总结一下值更新的公式：</p>
 <p><img alt="1748644334649" src="../image/Ch1_Introduction/1748644334649.png" /></p>
@@ -1161,7 +1207,7 @@
     
     
       
-      <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"base": "..", "features": ["content.math"], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
       <script src="../assets/javascripts/bundle.13a4f30d.min.js"></script>

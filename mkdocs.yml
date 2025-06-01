@@ -1,20 +1,22 @@
 site_name: 强化学习笔记
+
 theme:
   name: material
-  features:
-    - content.code.annotate
-    - content.math  # 启用 KaTeX 支持
-
-# KaTeX数学公式格式：
-# 行内公式： $E=mc^2$
-# 块级公式：
-# $$ 
-# \int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
-# $$
-
 
 nav:
   - 首页: index.md
-  - 序言: Ch0_Preface.md
-  - 第一章-引言: Ch1_Introduction.md
+  - 第一章-序言与介绍: Ch1_Introduction.md
   - 第二章-多臂老虎机: Ch2_Multi-armed_Bandits.md
+
+markdown_extensions:
+  - attr_list
+  - pymdownx.arithmatex:
+      generic: true
+
+extra_javascript:
+  - javascripts/katex.js
+  - https://unpkg.com/katex@0/dist/katex.min.js
+  - https://unpkg.com/katex@0/dist/contrib/auto-render.min.js
+
+extra_css:
+  - https://unpkg.com/katex@0/dist/katex.min.css

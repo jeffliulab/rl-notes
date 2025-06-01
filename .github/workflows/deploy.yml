@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install "mkdocs-material[math]"
+          pip install "mkdocs-material[all]"
 
       - name: Deploy to GitHub Pages
         run: mkdocs gh-deploy --force
