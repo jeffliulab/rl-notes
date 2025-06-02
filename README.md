@@ -1,9 +1,17 @@
 ﻿# Reinforcement Learning Notes (Chinese Version)
 
+请直接访问mkdocs文档查看文件内容：
+
+- https://jeffliulab.github.io/rl-notes
+
+## For English Readers
+
 This tutorial is in Chinese and if you want a English version, I recommend following repos, they are both for Sutton's classic textbook:
 
 - https://github.com/habanoz/rl-algo | This repo contains most source codes
 - https://github.com/brynhayder/reinforcement_learning_an_introduction | This repo contains most answers in the textbook
+
+## REPO介绍
 
 该REPO主要包含下面几个部分：
 
@@ -15,9 +23,12 @@ This tutorial is in Chinese and if you want a English version, I recommend follo
 
 - https://wnzhang.net/teaching/sjtu-rl-2024/index.html | 上交张伟楠教授的强化学习公开课，包含课件和视频，讲解非常仔细，课件制作也非常精良
 
-## Sutton教材精读
+一般来说不需要直接看本REPO，直接在mkdocs页面看就可以了：
 
-该部分对Sutton教材进行精度，每个部分都包括教材内容精读、课后习题练习讲解、代码讲解、实践代码等。
-
-可以直接访问mkdocs文档查看文件内容：
 - https://jeffliulab.github.io/rl-notes
+
+所有的源代码引用等也在mkdocs中有对应的链接，或者直接在markdown文件中贴进去了。
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
