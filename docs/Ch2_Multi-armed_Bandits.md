@@ -2,6 +2,8 @@
 
 注：图片来源于网络，如果该图片有版权，请联系我删除。本页内容皆为公开免费的笔记，不用于盈利。
 
+---
+
 ## 2.0 导读
 
 从第二章多臂老虎机开始到第八章Planning and Learning with Tabular Methods，作者将这部分统一归纳为本书的“第一部分：Tabular Solution Methods”，也就是“表格解法”。
@@ -28,11 +30,13 @@
 
 而在强化学习中，你控制马里奥，按了一个动作，系统将告诉你：你现在得了200分。系统不会告诉你：满分是多少。因此，你只能不断地玩，不断地玩，来看自己的分数能不能继续提高。在这种情况下，你的动作是系统关注的，系统知道怎么去评价，但是无法告诉你正确答案。
 
+---
+
 ## 2.1 K臂老虎机问题
 
-在本章中，我们将用一个具体的例子，来说明评价系统是如何运作的。该例子是一个简化版本的强化学习问题，它不具备联结性（associativity）。联结性的意思就是动作选择要与当前情境或者状态相联系，比如说，当agent在迷宫中探索时，在迷宫不同的位置的时候显然会进行不同的动作。比如在左边是墙壁的时候，显然不能继续向左走了；在右边是墙壁的时候，显然也不能向右走了。这个时候，向哪边走（动作）受到所处位置（状态）的影响，他们不能分开探讨，这种情况就是联结性的情况，也是所有现实问题显然具备的特征。
+在本章中，我们将用一个具体的例子，来说明评价系统是如何运作的。该例子是一个简化版本的强化学习问题，它不具备**联结性（associativity）**。联结性的意思就是动作选择要与当前情境或者状态相联系，比如说，当agent在迷宫中探索时，在迷宫不同的位置的时候显然会进行不同的动作。比如在左边是墙壁的时候，显然不能继续向左走了；在右边是墙壁的时候，显然也不能向右走了。这个时候，**向哪边走（动作）**受到**所处位置（状态）**的影响，他们不能分开探讨，这种情况就是联结性的情况，也是所有现实问题显然具备的特征。
 
-为了让问题简化，我们先来讨论非联结性（nonassociative）的例子。现在想象这样一个场景：你的面前有一个老虎机：
+为了让问题简化，我们先来讨论**非联结性（nonassociative）**的例子。现在想象这样一个场景：你的面前有一个老虎机：
 
 ![1748722008294](image/Ch2_Multi-armed_Bandits/1748722008294.png){style="display:block; margin:auto; width:400px;"}
 
@@ -50,7 +54,7 @@
 
 我们来系统性地看一下这个问题：你的目标其实就是在一定时间段内最大化期望地累计奖励，比如说在1000次动作（在强化学习中，我们把1000次动作称为1000个时间步 time steps）中获得的总奖励最大。
 
-那么，假设每个动作a都有一个期望奖励（expected reward）或平均奖励，我们称这个期望奖励就是这个动作的价值（value）。
+那么，假设每个动作a都有一个**期望奖励（expected reward）或平均奖励**，我们称这个期望奖励就是这个动作的**价值（value）**。
 
 我们用At代表第t步所选择的动作，Rt代表所获得的奖励，那么某个动作a的“真实”价值就可以记作：
 
@@ -70,9 +74,11 @@ $$
 
 复习一下期望值（expected value）：期望指的是试验中每次可能的结果乘以其结果概率的总和。这里要注意，我们这里提到的$q_*(a)$指的是真实值，下一节继续说明如何得到该值。
 
-## 2.2 动作价值方法 Action-value Methods
+---
 
-我们无法一上来就得到真实值，而只能通过多次试验来得到估计值。一种非常直观地估计方法就是简答地采取该动作过去所获得奖励的平均值，也即样本平均法（sample-average method）：
+## 2.2 动作价值方法
+
+我们无法一上来就得到真实值，而只能通过多次试验来得到估计值。一种非常直观地估计方法就是简答地采取该动作过去所获得奖励的平均值，也即**样本平均法（sample-average method）**：
 
 $$
 Q_t(a) \doteq 
@@ -92,8 +98,8 @@ $$
 
 现在，在任何一个时刻，当你面对k个老虎机的时候，你都可以通过上述样本平均法来计算出每一个动作对应的估计值。在这些值中，你可以采取两种动作：
 
-* 贪婪动作（greedy action）：选择值最高的动作。因为利用了值的特征，所以我们把贪婪动作叫做利用（exploiting）。
-* 非贪婪动作（non-greedy action）：选择值不是最高的动作，一般是随机选择动作。因为没有利用值，所以我们把这种叫做探索（exploring）。
+* **贪婪动作（greedy action）**：选择值最高的动作。因为利用了值的特征，所以我们把贪婪动作叫做利用（exploiting）。
+* **非贪婪动作（non-greedy action）**：选择值不是最高的动作，一般是随机选择动作。因为没有利用值，所以我们把这种叫做探索（exploring）。
 
 在这个任务中，因为估计值是通过采样计算得来的，所以它只反映了已经发生过的情况的结果，因而是片面的。如果不想遗漏更优可能，那么探索就是必须的。一开始探索的奖励可能会比较低，但一旦能找到更好的动作，就可以反复利用它，从而增加长期收益。由于不能同时探索和利用，所以在探索和利用之间存在一个复杂的权衡，这也是强化学习的一个核心要点。
 
@@ -103,7 +109,7 @@ $$
 * 各个动作的不确定性
 * 剩余的时间步数量
 
-在本书中，我们的关注焦点不在探索vs利用的权衡上，因而只考虑简单的平衡策略。当我们基于这些值来进行动作选择的时候，我们就称这类方法为动作价值方法（action-value methods）。一般来说，完整的动作价值函数还要包含状态，即$Q_t(s,a)$，但是老虎机问题中不存在状态，所以这里只探讨简化的动作价值函数。
+在本书中，我们的关注焦点不在探索vs利用的权衡上，因而只考虑简单的平衡策略。**当我们基于这些值来进行动作选择的时候，我们就称这类方法为动作价值方法（action-value methods）。**一般来说，完整的动作价值函数还要包含状态，即$Q_t(s,a)$，但是老虎机问题中不存在状态，所以这里只探讨简化的动作价值函数。
 
 现在，我们可以定一下动作选择规则，假设只选择估计价值最高的动作，即贪婪动作，我们可以记作：
 
@@ -116,6 +122,8 @@ $$
 但这显然不行。显然，我们需要考虑探索进去。一种常见的做法是大部分时间做贪婪选择，偶尔以小概率ε（epsilon）随机选择任一动作。我们把这种方法称为ε贪婪方法（ε-greedy methods）。
 
 当步数趋近于无穷时，每个动作最终都会被尝试无数次，因此每个a的估计值都能收敛到真实值，而最终最优动作的选择概率也会趋近于1-ε，即几乎总是能选择最优动作。不过，这种渐进性质（asymptotic gurantees）并不能完全反映该方法在优先步数下的实际效果。
+
+---
 
 ## 2.3 多臂老虎机模拟测试
 
@@ -187,7 +195,7 @@ plt.show()
 
 ![1748738896389](image/Ch2_Multi-armed_Bandits/1748738896389.png){style="display:block; margin:auto; width:800px"}
 
-这个图叫做“小提琴图”，可以很直观地显示出该testbed设置方法下最终的真实q值的分布。在接下来的实际测试中，agent是无法观测到这些东西的，只能通过实际得到的奖励，不断调整自己的Q值估计，最终当Q值收敛的时候，我们就能看到agent是否找到了正确的答案。
+这个图叫做“小提琴图”，可以很直观地显示出该testbed设置方法下最终的真实q值的分布。**在接下来的实际测试中，agent是无法观测到这些东西的，只能通过实际得到的奖励，不断调整自己的Q值估计，最终当Q值收敛的时候，我们就能看到agent是否找到了正确的答案。**
 
 现在知道了环境怎么给奖励，我们就可以开始实验了。假设agent一开始对10个动作的估计Q值都是0，那么在第一回合的时候，无论agent选择的ε是多少（我们在这里的讨论中，将纯greedy视为ε为0的情况），显然面对10个Q值一样的状态，agent都只能随机从中选择一个。当Q值一样的时候随机选一个是一般的处理方法。
 
@@ -289,7 +297,7 @@ if self = _init_:
 
 现在看起来像那么回事了，我们继续把一些细节写好，在后续的笔记种，我将省略上述过程，直接展示最终写好细节的伪代码。这里之所以赘述，是为了方便那些不怎么会编程的人学习（如今学习AI的人里不怎么会写代码的人越来越多了，这也正常，因为很多人主要研究数学！但强化学习非常适合应用，特别是和机器人结合在一起，所以会有比较多的编程！但这里读者觉得，在学习强化学习过程中，学会写伪代码就可以了，因为强化学习的代码一般不会太长，最重要的是策略和环境设置，具体的代码实现可以直接让ChatGPT写就行了！）
 
-在写整个程序的伪代码的时候，最关键的就是面向对象的设计，如果你还没有学过面向对象的概念，可以找个python/java的网络教程快速看一下，大概一个下午就能把主要的特点如对象、继承、重写等理解学会了。一般来说，读者认为能把下面我展示的这个水平的伪代码写出来，对于强化学习编程来说就没有问题了：
+在写整个程序的伪代码的时候，最关键的就是**面向对象的设计**，如果你还没有学过面向对象的概念，可以找个python/java的网络教程快速看一下，大概一个下午就能把主要的特点如对象、继承、重写等理解学会了。一般来说，读者认为能把下面我展示的这个水平的伪代码写出来，对于强化学习编程来说就没有问题了：
 
 ```python
 # 多臂老虎机测试伪代码
@@ -417,7 +425,9 @@ if self = _init_:
 
 本节的练习题参考附录中的Exercise 2.2, Exercise 2.3。
 
-## 2.4 Incremental Implementation
+---
+
+## 2.4 增量实现
 
 在上一节，我们已经介绍Q值的一个比较巧妙的更新公式：
 
@@ -427,7 +437,7 @@ Q_{n+1} = Q_n + \frac{1}{n} (R_n - Q_n)
 \end{aligned}
 $$
 
-这个公式在书中这里才提出来，但是上一章为了完成代码和练习我们已经使用了，这种公式叫做增量公式。增量实现（Incremental Implementation）在本书中将多次出现，它的一般形式为：
+这个公式在书中这里才提出来，但是上一章为了完成代码和练习我们已经使用了，这种公式叫做增量公式。**增量实现（Incremental Implementation）**在本书中将多次出现，它的一般形式为：
 
 $$
 \text{NewEstimate} \leftarrow \text{OldEstimate} + \text{StepSize} \cdot (\text{Target} - \text{OldEstimate})
@@ -438,17 +448,19 @@ $$
 - $\text{Target} - \text{OldEstimate}$ 表示当前估计的“误差”(error)
 - $\text{StepSize}$ 表示步长（在此例中是 $\frac{1}{n}$）
 
-这种思想的核心在于一步一步走，而不是一下子跳到终点（目标值）。为什么这么做呢？因为我们不知道真实的目标值，只能通过观测得到一个大概率带有噪音的目标值，比如奖励可能是随机的、状态转移不确定、数据不完美等等，所以我们不能直接把估计值直接设定为目标值，而是要慢慢靠近她。这种渐进式学习可以比较灵活地适应环境变化，也不会受到单个异常值地剧烈影响。
+**这种思想的核心在于一步一步走，而不是一下子跳到终点（目标值）。**为什么这么做呢？因为我们不知道真实的目标值，只能通过观测得到一个大概率带有噪音的目标值，比如奖励可能是随机的、状态转移不确定、数据不完美等等，所以**我们不能直接把估计值直接设定为目标值，而是要慢慢靠近她。这种渐进式学习可以比较灵活地适应环境变化，也不会受到单个异常值地剧烈影响。**
 
 在这里，书中对上一节我们自己写的老虎机算法进行了一个总结，这里的Q（a）就是Q值，N（a）是动作a被选择的次数。如果在上一小节认真写了代码，这个应该看起来会非常直观明了，因此就不赘述了：
 
 ![1748823420106](image/Ch2_Multi-armed_Bandits/1748823420106.png){style="display:block; margin:auto; width:800px;"}
 
+---
+
 ## 2.5 跟踪一个非平稳问题
 
 现在考虑这么一种情况：假如环境在缓慢地变化，那么我们就不得不考虑如何适应这种变化。用2.4的公式，显然不妥，因为无论是一开始的还是最近的，他们的值都会被平等地算进公式里去。
 
-在RL中，其实更多的问题是非平稳（nonstationary）的。在这种情况下，我们应该想办法对最近的奖励赋予更大的权重。这里介绍一个非常常见的方法，即使用固定步长参数（step-size parameter)，即将2.4的公式：
+在RL中，其实更多的问题是**非平稳（nonstationary）** 的。在这种情况下，我们应该想办法对最近的奖励赋予更大的权重。这里介绍一个非常常见的方法，即使用**固定步长参数（step-size parameter)**，即将2.4的公式：
 
 $$
 \begin{aligned}
@@ -462,7 +474,7 @@ $$
 Q_{n+1} \doteq Q_n + \alpha \left[ R_n - Q_n \right]
 $$
 
-这里的α叫做固定步长参数，是一个0到1的常数。显然易见，Q(n+1)就变成了对过去奖励和初始估计Q1的加权平均，并且通过数学公式推导：
+**这里的α叫做固定步长参数，是一个0到1的常数。** 显然易见，Q(n+1)就变成了对过去奖励和初始估计Q1的加权平均，并且通过数学公式推导：
 
 $$
 \begin{aligned}
@@ -476,7 +488,7 @@ Q_{n+1} &= Q_n + \alpha \left[ R_n - Q_n \right] \\
 \end{aligned}
 $$
 
-可以看出，一开始（t=1）的奖励的权重将会随着时间的推移越来越小，并且一开始的奖励的权重是呈指数级衰减的（指数为1-α），因此这种方法也叫做指数加权平均（exponential recency-weighted average）。
+可以看出，一开始（t=1）的奖励的权重将会随着时间的推移越来越小，并且一开始的奖励的权重是呈指数级衰减的（指数为1-α），因此这种方法也叫做指**数加权平均（exponential recency-weighted average）**。
 
 根据随机逼近理论，若想让收敛必然发生，必须满足以下两个条件：
 
@@ -488,22 +500,67 @@ $$
 
 那么可以看到，对于样本平均法（$\alpha_n(a) = \frac{1}{n}$）是满足的；但是对于固定步长的方法则不满足第二个条件，也即意味着Q值会永远随着最新奖励不断变化。虽然无法收敛，但是因为强化学习中非平稳问题占主流，所以该方法是一般被采用的。
 
+这里需要注意的一点是（在Exercise2.7中问到了关于接下来要讲的这一点），**样本平均法是无偏的（unbiased），而常数步长法是有偏的（biased）。**在统计学中，如果一个估计值的期望等于它所估计的真实值，我们就说这个估计是无偏的（unbiased）。 即，假设$X$是我们要估计的真实值（比如某个动作的期望奖励），$\hat{X}$是我们的估计值（比如Qn），如果满足：$\mathbb{E}[\hat{X}] = X$，那么我们就说这个估计是无偏的。****在这里之所以讨论这一点，是因为如果方法无偏，那么在足够多的学习之后，估计值就会平均地等于真实值。** 无偏适合静态环境，比如老虎机问题；而有偏适合非静态环境，可以快速适应新的变化（因为新的奖励会获得更高的权重）。
+
+小结：通过本节学习，我们到目前为止掌握了如下两种Q值更新公式：
+
+$$
+\underbrace{
+Q_n = (1 - \alpha)^n Q_0 + \sum_{i=1}^{n} \alpha (1 - \alpha)^{n - i} R_i
+}_{\text{公式1：常数步长法}}
+\qquad \text{和} \qquad
+\underbrace{
+Q_n = \frac{1}{n} \sum_{i=1}^{n} R_i
+}_{\text{公式2：样本平均法}}
+$$
+
 本节练习见 Exercise 2.4 和 Exercise 2.5。
 
-## 2.6 Optimistic Initial Values
+---
 
-周一继续学习这部分
+## 2.6 乐观初始值
 
+本节讲一下**乐观初始值（Optimistic Initial Values）**的概念。
 
-## 附：Exercise 课本练习题
+在上一节中，我们讲到固定步长法是有偏的，在强化学习中，这种偏差并不是问题，有时甚至还非常有帮助。唯一的缺点就是，用户需要思考初始值该如何设置，因为固定步长法的初始值Q1项始终无法消除。在Code 2.1和Code 2.2这两个实验中，我们把初始值都设置为0。如果我们把这两个实验的初始值设为5，会发生什么呢？
 
-### Exercise 2.1
+很显然，所有的奖励都不会达到5，因此当agent进行动作选择并更新Q值后，那些没被选择的显然会成为数值更高的动作。因此，这种设计方法可以保证所有的动作都被访问。这种方法就叫做乐观初始值方法。
+
+我们只需要把Code 2.1的代码稍微修改一下，就能得到如下对比实验的结果（运行代码参见Code 2.3 乐观初始值：
+
+![1748893926277](image/Ch2_Multi-armed_Bandits/1748893926277.png){style="display:block; margin:auto; width:600px;"}
+
+可以看出，乐观初始值方法即使使用了epsilon=0的greedy策略，并在一开始表现较差，但在200步左右便超过了初始值为0的ε-greedy策略，收敛到了更好的水平。
+
+但是，如果任务发生变化（比如非平稳环境中），我们就可能需要重新探索。时间的起点只出现一次，我们不应该过分关注它。尽管如此，这种巧妙的设置方法在许多实际应用中依然十分有效。本节的目的就是记住有这样一种特殊技巧。
+
+Exercise 2.6和Exercise2.7参见附录Exercise部分。
+
+---
+
+## 2.7 UCB Action Selecion
+
+---
+
+## 附：Exercise
+
+### Exercise 2.1 计算贪婪动作选择概率
 
 问：在练习ε-greedy动作选择中，假设有两个动作，且ε=0.5，那么选择贪婪动作的概率是多少？
 
-答：如果epsilon=0.5，那么很显然有0.5的概率进行探索，并由1-0.5=0.5的概率选择贪婪动作。但是要注意，在随机探索的时候，也有可能选中贪婪动作，所以如果题目包含了这种情况，我们就需要
+答：如果epsilon=0.5，那么很显然有0.5的概率进行探索，并由1-0.5=0.5的概率选择贪婪动作。但是要注意，在随机探索的时候，也有可能选中贪婪动作，所以贪婪概率的总概率一般计算为：
 
-### Exercise 2.2
+
+$$
+\text{贪婪动作的概率} = (1 - \varepsilon) + \frac{\varepsilon}{k} = (1 - 0.5) + \frac{0.5}{2} = 0.5 + 0.25 = 0.75
+$$
+
+
+---
+
+### Exercise 2.2 判断ε动作
+
+**问：**
 
 考虑一个k=4的多臂老虎机问题，考虑使用以下策略：
 
@@ -523,7 +580,7 @@ $$
 
 那么请问，在哪些时间步中可以确定发生了ε情况，而哪些时间步则是可能呢？
 
-答：
+**答：**
 
 | Timestep | 是否发生了ε | 原因                                                                 |
 | -------- | ------------ | -------------------------------------------------------------------- |
@@ -533,13 +590,15 @@ $$
 | 4        | 一定         | 此时a2已经不是最优值了，选到的话一定是ε                             |
 | 5        | 一定         | 此时a3的Q为0，但是a2的Q经过三次选择已经更新为0.33，大于a3            |
 
-### Exercise 2.3
+---
+
+### Exercise 2.3 不同ε策略的定量期望
 
 ![1748812637285](image/Ch2_Multi-armed_Bandits/1748812637285.png){style="display:block; margin:auto; width:800px;"}
 
-对于图中所示的对比实验中，哪一种方法在长期的表现最好？他会好多少？您能用定量的方式表达吗？
+**问：**对于图中所示的对比实验中，哪一种方法在长期的表现最好？他会好多少？您能用定量的方式表达吗？
 
-答：这道题有点意思，要求从数学角度分析。虽然图中明显ε=0.1的情况表现最好，但是从数学角度来看的话，如果进行无限时间步，即$t \to \infty$，那么样本平均估计在有探索的情况下将收敛到各个动作的真实值，即：
+**答：**这道题有点意思，要求从数学角度分析。虽然图中明显ε=0.1的情况表现最好，但是从数学角度来看的话，如果进行无限时间步，即$t \to \infty$，那么样本平均估计在有探索的情况下将收敛到各个动作的真实值，即：
 
 $$
 Q_t(a) \to q_*(a)
@@ -601,16 +660,166 @@ $$
 
 *greedy情况下一开始可能会卡在次优臂上，理论上理想化的极限是100%
 
-### Exercise 2.4
+---
 
-周一继续做
+### Exercise 2.4 可变的步长参数表示
 
-### Exercise 2.5
+**问：**如果步长参数$\alpha_n$不是常数，那么估计值$Q_n$是先前接收到的奖励得加权平均，不过其加权方式不同于公式2.5节中给出的形式。那么，在更一般的情况下，也就是步长可变的情况下，每一个先前奖励得权重是多少？请用一系列步长参数来表达这些权重，作为对2.5节中的公式的一般化。
 
-这个是个编程问题，周一继续做
+**答：**先回顾一下题目中所说的2.5节中的公式：$Q_n = (1 - \alpha)^n Q_0 + \sum_{i=1}^n \alpha (1 - \alpha)^{n - i} R_i$，这个公式表示Qn实际上是一个带有衰减的指数加权平均数。
 
+如果步长$\alpha_n$不是常数，估计值Qn仍然是所有过去奖励Ri的加权平均，但是每个奖励的权重由不同的步长序列决定：
 
-## 附：Math 相关数学证明
+$$
+Q_{n+1} = \left( \prod_{j=1}^{n} (1 - \alpha_j) \right) Q_0 + \sum_{i=1}^{n} \alpha_i \left( \prod_{j=i+1}^{n} (1 - \alpha_j) \right) R_i
+$$
+
+其中第i次奖励Ri的权重是：
+
+$$
+w_i = \alpha_i \prod_{j=i+1}^{n} (1 - \alpha_j)
+$$
+
+这说明了每个奖励的权重不仅依赖于它被引入时的步长$\alpha_i$，还受之后所有步长的“衰减作用”影响。
+
+注：关于该公式的推导及说明，参见附录中的 **Math 2.3 广义指数递减加权平均**
+
+---
+
+### Exercise 2.5 非平稳实验
+
+**编程题：**设计一个实验，以演示样本平均方法在非平稳问题上所遇到的困难，具体要求如下：
+
+1. 多臂老虎机的k依然为10
+2. 令所有动作的真实价值$q_*(a)$一开始都相等
+3. 在每一步都对他们施加独立的随机游走（例如，每一步给每个$q_*(a)$都加上一个服从均值0、标准差0.01的正态分布增量。
+4. 使用两种不同的动作价值方法：样本平均法（incremental sample-average）和固定步长法（constant-step-size, alpha=0.1）
+5. 对这两种方法，在同样的非平稳环境下，分别进行一次较长的仿真运行，如10000步。设定epsilon=0.1来进行ε-greedy。
+6. 绘制平均奖励曲线（随着时间步推进，算法所获得的平均回报如何变化）和最优动作选择百分比曲线（随着时间步推进，算法选择最有动作的频率如何变化）。
+
+**答：**
+
+根据上述要求，可以写出伪代码如下：
+
+```python
+class 老虎机:
+	def __init__():
+		k = 10
+		真实奖励q* = 长度为k的list，包含10个一样的值，可以都设置为0
+
+	def 获得奖励(动作a):
+		实际奖励 = 在以动作a的真实奖励为均值，方差为1的正态分布中采样
+		对所有真实奖励q*永久性累加随机游走的扰动（均值为0、标准差为0.01）
+		return 实际奖励
+
+class Agent:
+    def __init__():
+		epsilon = 0.1
+		Q数组，长度为10，初始化为0；存放每个动作当前的估计值
+		N数组，长度为10，初始化为0；记录每个动作被选过的次数，用于样本平均法和统计使用
+
+	def 动作选择():
+		按照epsilon选择最优/随机动作
+
+	def 更新Q值(更新方法, 动作a):
+		N[动作a] += 1
+		if 更新方法 = 样本平均法:
+			按照样本平均法进行动作a的Q值更新
+		else:
+			按照固定步长法进行动作a的Q值更新，固定步长alpha=0.1
+
+def main():
+	分别模拟样本平均法和固定步长法：
+		模拟2000次试验：
+			在每次试验中进行100000个时间步:
+				让Agent根据Q值选择动作
+				获得奖励()
+				更新Q值()
+	完成后分别绘制平均奖励曲线和最优动作选择百分比曲线
+	注：绘制曲线需要的额外变量并没有写在上述伪代码中
+```
+
+将上述伪代码发送给ChatGPT，生成python代码（参见附录的Code 2.2 非平稳环境实验），结果如下：
+
+![1748859000765](image/Ch2_Multi-armed_Bandits/1748859000765.png){style="display:block; margin:auto; width:800px;"}
+
+![1748859016901](image/Ch2_Multi-armed_Bandits/1748859016901.png){style="display:block; margin:auto; width:800px;"}
+
+从实验结果来看，固定步长法在非平稳环境中表现更好。
+
+---
+
+### Exercise 2.6 乐观初始值图像中的问题
+
+**问：** 在2.6小节乐观初始值的实验中（Code 2.3 乐观初始值），为什么在结果中，可以看到在乐观方法的曲线早期出现了波动和尖峰现象？换句话说，是什么因素可能导致这种方法在特定的早期步骤上平均表现得特别好或者特别差？
+
+**答：** 在乐观初始值方法中，所有动作的初始估计值都被设得非常高（例如 +5），而实际的奖励值是从均值为 0 的正态分布中采样的。因此，无论选择哪个动作，第一次获得的奖励几乎总是低于初始估计，导致 Q 值立即下降。
+
+这种“失望”的反馈使得智能体迅速放弃当前动作，去尝试其他动作。这就相当于在早期阶段，虽然没有显式的 ε，但行为上几乎是完全探索性的，每个动作都被轮番尝试。
+
+为什么会出现震荡和尖峰：
+
+* 一旦某个动作偶然获得了一个高于平均的奖励，它的 Q 值会下降得更慢，甚至暂时升高，使得该动作被反复选择几次。
+* 但之后又因为真实奖励低于估计值，Q 再次下降，智能体又开始探索其他动作。
+* 这个过程中会出现“某动作突然被偏爱几步后又被放弃”的行为，导致平均奖励在这些点上产生尖峰和波动。
+
+此外，由于不同试验中的真实奖励是随机生成的（2000 次试验中每次都不同），这些波动在前几十步中 不会完全被平均掉 ，从而在图 2.3 中表现为早期曲线上的尖峰。
+
+---
+
+### Exercise 2.7 设计一个避免初始偏差的常数步长系数
+
+**问：** 
+
+在本章的大多数内容中，我们使用样本平均值来估计动作价值，因为样本平均不会像常数步长那样产生初始偏差。然而，样本平均并不是一个完全令人满意的解决方案，因为它们在非平稳问题中可能表现较差。
+
+有没有可能在保留常数步长在非平稳问题上的优势的同时，避免其初始偏差呢？一种方式是使用如下的步长：
+
+$$
+\beta_n \doteq \frac{\alpha}{\bar{o}_n} \tag{1}
+$$
+
+来处理某个特定动作的第 n次奖励，其中 $\alpha > 0$是一个常规的常数步长，而 $\bar{o}_n$ 是一个从 0 开始的“1的踪迹（trace of one）”，定义为：
+
+$$
+\bar{o}_n \doteq \bar{o}_{n-1} + \alpha (1 - \bar{o}_{n-1}), \quad n > 0, \quad \bar{o}_0 \doteq 0 \tag{2}
+$$
+
+请证明：使用这种方法得到的Qn是一个无初始偏差的指数加权平均值
+
+**答：**
+
+由递推式可得：
+
+$$
+\bar{o}_n = 1 - (1 - \alpha)^n, \quad \beta_n = \frac{\alpha}{\bar{o}_n} = \frac{\alpha}{1 - (1 - \alpha)^n}
+$$
+
+故$\beta_1 = \alpha / \alpha = 1$，第一步更新 ( Q_1 = R_1 )，完全抹去 ( Q_0 )（无初始偏差）。将$Q_n = Q_{n-1} + \beta_n (R_n - Q_{n-1})$递归展开，得：
+
+$$
+Q_n = \underbrace{(1 - \beta_n) \cdots (1 - \beta_1)}_{=0} Q_0 + \sum_{i=1}^{n} \left[ \beta_i \prod_{k=i+1}^{n} (1 - \beta_k) \right] R_i
+$$
+
+令系数为：
+
+$$
+w_i^{(n)} = \beta_i \prod_{k = i+1}^{n} (1 - \beta_k).
+$$
+
+可以观察到，
+
+$$
+\frac{w_{i+1}}{w_i} = \frac{\beta_{i+1}}{\beta_i (1 - \beta_{i+1})} = \frac{1}{1 - \alpha} > 1
+$$
+
+由于$\alpha$是一个事先给定且满足$0<\alpha<1$的常数步长，因此上式成立。而如果上式成立，则说明对于固定的n，$w_i^{(n)}$随着i按照几何比率递增，换句话说往过去看按$(1-\alpha)$的比率衰减，即$w_i^{(n)}$是典型的“指数衰减且归一化”权重。因此 ( Q_n ) 正是一个无初始偏差的指数加权平均值。
+
+本题的详细说明见Math 2.4 无偏常数步长更新的指数加权平均系数设计。
+
+---
+
+## 附：Math
 
 ### Math 2.1 证明多臂老虎机实验理论最优期望奖励
 
@@ -665,6 +874,8 @@ $$
 $$
 \mathbb{E}\left[ \max_{1 \le i \le 10} q_i^* \right] \approx 1.54.
 $$
+
+---
 
 ### Math 2.2 推导多臂老虎机可求解的理论平均最优奖励
 
@@ -766,7 +977,323 @@ $$
 = (1 - \varepsilon) \times 1.54.
 $$
 
-## 附：Code 实验代码
+---
+
+### Math 2.3 广义指数递减加权平均
+
+首先，我们从基本更新公式出发：
+
+$$
+Q_{n+1} = Q_n + \alpha_n (R_n - Q_n)
+$$
+
+将其整理为“线性加权”形式：
+
+$$
+Q_{n+1} = (1 - \alpha_n) Q_n + \alpha_n R_n \tag{1}
+$$
+
+这个形式可以告诉我们，当前估计Qn会被保留一部分（比例是$1-\alpha_n$）；新的奖励Rn会以$\alpha_n$的权重加进去。我们同样可以写出Qn的线性加权形式：
+
+$$
+Q_n = (1 - \alpha_{n-1}) Q_{n-1} + \alpha_{n-1} R_{n-1} \tag{2}
+$$
+
+将（2）式的Qn代入到（1）中，可以得到：
+
+$$
+Q_{n+1} = (1 - \alpha_n) \left[ (1 - \alpha_{n-1}) Q_{n-1} + \alpha_{n-1} R_{n-1} \right] + \alpha_n R_n
+$$
+
+重复这个展开过程，可以得到一个不断“套娃”的结构：
+
+$$
+Q_{n+1} =
+(1 - \alpha_n)(1 - \alpha_{n-1}) \cdots (1 - \alpha_1) Q_0
++ \sum_{i=1}^{n} \left[
+  \alpha_i \cdot \prod_{j=i+1}^{n} (1 - \alpha_j)
+\right] R_i
++ \alpha_n R_n
+$$
+
+接着我们可以发现，当i=n的时候，求和项中对应的那一项为：
+
+$$
+\alpha_n \times 
+\underbrace{
+  \prod_{j = n+1}^{n} (1 - \alpha_j)
+}_{\text{空乘积}} 
+\times R_n
+$$
+
+在数学上，当乘法的起点比终点大的时候，我们就叫作空乘积（empty product），并有约定该值为1：
+
+$$
+\text{空乘积}\prod_{j = n+1}^{n} (\cdot) = 1 \ \text{，也即} \prod_{j = n+1}^{n} (1-\alpha_j) = 1
+$$
+
+因此当$i=n$的时候，最后项$\alpha_nR_n$实际上就是上面求和中的i=n项，所以我们可以把这个具备重复性的模式表示为：
+
+$$
+Q_{n+1} =
+\underbrace{
+\left( \prod_{j=1}^{n} (1 - \alpha_j) \right) Q_0
+}_{\text{初始值 } Q_0 \text{ 的残余影响}} +
+\underbrace{
+\sum_{i=1}^{n} \alpha_i \left( \prod_{j=i+1}^{n} (1 - \alpha_j) \right) R_i
+}_{\text{历史奖励的加权和}}
+$$
+
+$$
+\text{其中} \ w_i = \alpha_i \prod_{j=i+1}^{n} (1 - \alpha_j) \
+\text{是奖励 } R_i \text{ 在最终估计中的真实权重}
+$$
+
+简单来说，就是：
+
+$$
+Q_{n+1} = 
+\boxed{
+\text{初始估计影响} + \sum_{i=1}^{n} \text{每个奖励的“引入权重} \times \text{保留系数”}
+}
+$$
+
+---
+
+### Math 2.4 无偏常数步长更新的指数加权平均系数设计
+
+**1. 设计思路：如何构造无偏的常数步长更新系数**
+
+在常见的常数步长更新中，我们往往直接用
+
+$$
+Q_{n} \;=\; Q_{n-1} + \alpha\bigl(R_{n} - Q_{n-1}\bigr), 
+\quad 0<\alpha<1,
+$$
+
+却会遗留对最初 $Q_0$ 的“初始偏差”——因为这时展开后
+
+$$
+Q_n 
+= (1-\alpha)^n\,Q_0 
+\;+\;\sum_{i=1}^n \alpha\,(1-\alpha)^{\,n-i}\,R_i,
+$$
+
+其中 $(1-\alpha)^n Q_0$ 永远不会完全消失。若希望同时做到：
+
+- 从第 1 步开始就不再依赖 $Q_0$ （无初始偏差），
+- 后续对新数据依然快速响应（近似常数步长 $\alpha$ 的效果），
+
+就需要让第 1 步使用步长 1 （彻底抹掉 $Q_0$），而在第 $n>1$ 步又“渐渐回到”常数 $\alpha$。
+
+**1.1 构造辅助序列 $\bar o_n$**
+
+我们先定义一个辅助变量序列 $\{\bar o_n\}$，用于动态“归一化”常数 $\alpha$ ：
+
+- 令
+
+  $$
+  \bar o_0 = 0;
+  $$
+- 对 $n \ge 1$ ，递推
+
+  $$
+  \bar o_n \;=\; \bar o_{n-1} + \alpha\,\bigl(1 - \bar o_{n-1}\bigr).
+  $$
+
+  简言之，$\bar o_n$ 从 0 开始，每一步都“向 1 靠近一小步”，速率由 $\alpha$ 决定。
+
+**1.2 定义动态步长 $\beta_n$**
+
+基于 $\bar o_n$，我们令第 $n$ 次更新所用的步长为
+
+$$
+\beta_n \;=\; \frac{\alpha}{\,\bar o_n\,},\quad n \ge 1.
+$$
+
+此时有：
+
+- 第 1 步：$\bar o_1 = \alpha$，于是
+
+  $$
+  \beta_1 = \frac{\alpha}{\alpha} = 1.
+  $$
+
+  在第 1 步使用 $\beta_1=1$ ，就能令
+
+  $$
+  Q_1 = Q_0 + 1\cdot\bigl(R_1 - Q_0\bigr) = R_1,
+  $$
+
+  从而**完全抹去**最初的 $Q_0$，保证“无初始偏差”。
+- 第 $n>1$ 步：$\bar o_n \to 1$，因此
+
+  $$
+  \beta_n = \frac{\alpha}{\,\bar o_n\,}
+  \;\approx\; \alpha\quad(\text{当 }n\text{ 足够大时})\,.
+  $$
+
+  后续各次更新所用的步长 $\beta_n$ 会快速从 1 降到接近 $\alpha$，亦即恢复常数步长的效果，从而对新数据依然快速响应。
+
+综上，**设计结果**：
+
+- 第 1 步 $\beta_1=1$ → 立即抹掉 $Q_0$ → 无初始偏差；
+- 第 $n>1$ 步 $\beta_n=\alpha/\bar o_n$ → 随着 $\bar o_n\to1$ 迅速趋于 $\alpha$ → 保留常数步长的优点。
+
+**2. 详细证明：该系数无初始偏差且构成指数加权平均**
+
+下面在已知 $\bar o_n$、$\beta_n$ 定义的基础上，逐步证明所需性质。
+
+**2.1 求解 $\bar o_n$ 的闭式表达**
+
+先证明递推
+
+$$
+\bar o_0 = 0,\quad
+\bar o_n = \bar o_{n-1} + \alpha\bigl(1 - \bar o_{n-1}\bigr)
+$$
+
+等价于
+
+$$
+\bar o_n = 1 - (1-\alpha)^n,\quad n\ge0.
+$$
+
+*验证（数学归纳法）：*
+
+- $n=0$ 时，$1 - (1-\alpha)^0 = 0 = \bar o_0$.
+- 假设对某 $n-1\ge0$ 已成立：$\bar o_{n-1} = 1 - (1-\alpha)^{\,n-1}$.
+- 则：
+
+$$
+\begin{aligned}
+\bar{o}_n 
+&= \bar{o}_{n-1} + \alpha \left(1 - \bar{o}_{n-1}\right) \\[4pt]
+&= \left[1 - (1 - \alpha)^{n-1}\right]
+\,+\, \alpha \left[1 - \left(1 - (1 - \alpha)^{n-1}\right)\right] \\[4pt]
+&= 1 - (1 - \alpha)^{n-1} + \alpha (1 - \alpha)^{n-1} \\[4pt]
+&= 1 - (1 - \alpha)^n
+\end{aligned}
+$$
+
+归纳完成。
+
+因此
+
+$$
+\bar o_n = 1 - (1-\alpha)^n,\quad
+\beta_n = \frac{\alpha}{\,\bar o_n\,}
+= \frac{\alpha}{\,1 - (1-\alpha)^n\,}.
+$$
+
+特别地，$n=1$ 时，$\beta_1 = \alpha/\alpha = 1$。
+
+**2.2 第 1 步抹去 $Q_0$：验证无初始偏差**
+
+更新公式为
+
+$$
+Q_n = Q_{n-1} + \beta_n\,\bigl(R_n - Q_{n-1}\bigr),
+\quad n\ge1,\quad Q_0\text{ 任意}.
+$$
+
+- 第 1 步：$\beta_1=1$，则
+
+  $$
+  Q_1 = Q_0 + 1\,(R_1 - Q_0) = R_1,
+  $$
+
+  完全去除对 $Q_0$ 的依赖。
+- 递归展开：对任意 $n\ge1$，应用更新式可得
+
+$$
+\begin{aligned}
+Q_n 
+&= (1-\beta_n)\,Q_{n-1} + \beta_n\,R_n \\[4pt]
+&= (1-\beta_n)\left[(1-\beta_{n-1})\,Q_{n-2} + \beta_{n-1}\,R_{n-1}\right]
+   + \beta_n\,R_n \\[4pt]
+&\;\;\vdots \\[2pt]
+&= \underbrace{(1-\beta_n)\,(1-\beta_{n-1})\cdots(1-\beta_1)}_{C_0^{(n)}}\,Q_0
+   + \sum_{i=1}^n \left[\beta_i \prod_{j=i+1}^n (1-\beta_j)\right] R_i.
+\end{aligned}
+$$
+
+  由于 $\beta_1=1\implies(1-\beta_1)=0$，因此 $C_0^{(n)}=0$，从此 $Q_n$ 不含 $Q_0$。令
+
+$$
+w_i^{(n)} = \beta_i \prod_{j=i+1}^n (1-\beta_j),
+$$
+
+  则
+
+$$
+\boxed{Q_n = \sum_{i=1}^n w_i^{(n)}\,R_i.}
+$$
+
+  这说明“无任何初始偏差”。
+
+**2.3 推导指数衰减与归一化**
+
+1. **计算 $1-\beta_j$：**
+
+   $$
+   \beta_j = \frac{\alpha}{\,1 - (1-\alpha)^j\,}
+   \;\implies\;
+   1 - \beta_j 
+   = \frac{(1-\alpha)\,\bigl[\,1 - (1-\alpha)^{\,j-1}\bigr]}{\,1 - (1-\alpha)^j\,}.
+   $$
+2. **连乘并约掉中间因子：**
+
+   $$
+   \prod_{j=i+1}^n (1 - \beta_j)
+   = \prod_{j=i+1}^n 
+     \frac{(1-\alpha)\,[\,1 - (1-\alpha)^{\,j-1}\,]}{\,1 - (1-\alpha)^j\,}
+   = \frac{(1-\alpha)^{\,n - i}}{\,1 - (1-\alpha)^n\,}.
+   $$
+3. **得出 $w_i^{(n)}$ 的简化形式：**
+
+   $$
+   w_i^{(n)} 
+   = \beta_i \prod_{j=i+1}^n (1 - \beta_j)
+   = \frac{\alpha}{\,1 - (1-\alpha)^i\,}
+     \;\times\;\frac{(1-\alpha)^{\,n - i}}{\,1 - (1-\alpha)^n\,}
+   = \frac{\alpha\,(1-\alpha)^{\,n - i}}{\,1 - (1-\alpha)^n\,}.
+   $$
+4. **验证归一化：**
+
+   $$
+   \sum_{i=1}^n w_i^{(n)}
+   = \sum_{i=1}^n \frac{\alpha\,(1-\alpha)^{\,n - i}}{\,1 - (1-\alpha)^n\,}
+   = \frac{1}{\,1 - (1-\alpha)^n\,}
+     \sum_{i=1}^n \alpha\,(1-\alpha)^{\,n - i}
+   = 1.
+   $$
+
+因此
+
+$$
+Q_n 
+= \sum_{i=1}^n \frac{\alpha\,(1-\alpha)^{\,n - i}}{\,1 - (1-\alpha)^n\,}\;R_i
+$$
+
+既是**指数衰减**、又**归一化**的加权平均。
+
+**总结：**
+以上证明了所设计的 $\beta_n=\alpha/\bar o_n$ 既确保 **无初始偏差**（$\beta_1=1$ 抹去 $Q_0$），又得到
+
+$$
+Q_n = \sum_{i=1}^n w_i^{(n)}\,R_i,
+\quad
+w_i^{(n)} = \frac{\alpha\,(1-\alpha)^{\,n - i}}{\,1 - (1-\alpha)^n\,},
+$$
+
+从而 $Q_n$ 是一个**无初始偏差的指数加权平均值**。
+
+这个“无偏常数步长+指数加权”的设计技巧在强化学习中是一个非常经典的方案，一方面它抹掉了初始值（即在算法设计中初始人为给定的Q0）而让第一步的值直接等于R1，这样可以让观测估计值直接来自于真实数据而非人工设定；另一方面又保留了对新信息迅速更新的常数步长优点。
+
+---
+
+## 附：Code
 
 ### Code 2.1 多臂老虎机实验
 
@@ -927,6 +1454,198 @@ if __name__ == "__main__":
     plt.title("Percentage of Optimal Action over Time for Different ε Values")
     plt.grid(True)
     plt.show()
+
+```
+
+---
+
+### Code 2.2 非平稳实验
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from tqdm import tqdm  # Import tqdm for progress bars
+
+class NonstationaryBandit:
+    def __init__(self, k=10, q_init=0.0, random_walk_std=0.01):
+        self.k = k
+        self.q_true = np.ones(k) * q_init
+        self.random_walk_std = random_walk_std
+
+    def get_reward(self, action):
+        # Sample reward from N(q_true[action], 1)
+        reward = np.random.normal(loc=self.q_true[action], scale=1.0)
+        # Apply random walk to q_true for all actions
+        self.q_true += np.random.normal(loc=0.0, scale=self.random_walk_std, size=self.k)
+        return reward
+
+    def optimal_action(self):
+        return np.argmax(self.q_true)
+
+class Agent:
+    def __init__(self, k=10, epsilon=0.1, alpha=None):
+        self.k = k
+        self.epsilon = epsilon
+        self.alpha = alpha  # None for sample-average, otherwise fixed-step size
+        self.Q = np.zeros(k)
+        self.N = np.zeros(k, dtype=int)
+
+    def select_action(self):
+        if np.random.rand() < self.epsilon:
+            return np.random.randint(self.k)
+        else:
+            max_val = np.max(self.Q)
+            candidates = np.where(self.Q == max_val)[0]
+            return np.random.choice(candidates)
+
+    def update(self, action, reward):
+        self.N[action] += 1
+        if self.alpha is None:
+            n = self.N[action]
+            self.Q[action] += (1.0 / n) * (reward - self.Q[action])
+        else:
+            self.Q[action] += self.alpha * (reward - self.Q[action])
+
+def run_experiment(n_runs=2000, n_steps=10000, epsilon=0.1, alpha=None):
+    avg_rewards = np.zeros(n_steps)
+    optimal_action_counts = np.zeros(n_steps)
+
+    # Use tqdm to display progress over runs
+    for _ in tqdm(range(n_runs), desc=f'Running {"Sample-Average" if alpha is None else "Constant-Step α="+str(alpha)}'):
+        env = NonstationaryBandit()
+        agent = Agent(epsilon=epsilon, alpha=alpha)
+
+        for t in range(n_steps):
+            action = agent.select_action()
+            reward = env.get_reward(action)
+            agent.update(action, reward)
+
+            avg_rewards[t] += reward
+            if action == env.optimal_action():
+                optimal_action_counts[t] += 1
+
+    avg_rewards /= n_runs
+    optimal_action_percents = (optimal_action_counts / n_runs) * 100.0
+    return avg_rewards, optimal_action_percents
+
+# Parameters
+n_runs = 2000
+n_steps = 10000  # Reduced from 100000 for reasonable output
+epsilon = 0.1
+
+# Run and plot for Sample-Average method
+avg_rewards_sample, opt_percents_sample = run_experiment(
+    n_runs=n_runs, n_steps=n_steps, epsilon=epsilon, alpha=None
+)
+
+# Run and plot for Constant-Step method (alpha = 0.1)
+avg_rewards_const, opt_percents_const = run_experiment(
+    n_runs=n_runs, n_steps=n_steps, epsilon=epsilon, alpha=0.1
+)
+
+# Plot average rewards
+plt.figure(figsize=(10, 4))
+plt.plot(avg_rewards_sample, label="Sample-average")
+plt.plot(avg_rewards_const, label="Constant-step α=0.1")
+plt.xlabel("Time steps")
+plt.ylabel("Average reward")
+plt.legend()
+plt.title("Average Reward vs. Time (Nonstationary 10-Arm Bandit)")
+plt.show()
+
+# Plot % optimal action
+plt.figure(figsize=(10, 4))
+plt.plot(opt_percents_sample, label="Sample-average")
+plt.plot(opt_percents_const, label="Constant-step α=0.1")
+plt.xlabel("Time steps")
+plt.ylabel("% Optimal action")
+plt.legend()
+plt.title("Optimal Action % vs. Time (ε=0.1)")
+plt.show()
+
+```
+
+---
+
+### Code 2.3 乐观初始值
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 老虎机环境
+class SlotMachine:
+    def __init__(self, k=10):
+        self.k = k
+        self.real_q = np.random.normal(0, 1, k)  # 每个动作的真实期望奖励
+
+    def reward(self, a):
+        return np.random.normal(self.real_q[a], 1)  # 奖励分布 N(real_q[a], 1)
+
+# 代理
+class Agent:
+    def __init__(self, Q_init, epsilon, alpha=0.1, k=10):
+        self.Q = np.ones(k) * Q_init  # 初始化 Q 表
+        self.epsilon = epsilon        # ε-贪婪参数
+        self.alpha = alpha            # 学习率
+        self.k = k
+
+    def choose_action(self):
+        if np.random.rand() < self.epsilon:
+            return np.random.randint(0, self.k)  # 探索
+        else:
+            return np.argmax(self.Q)             # 利用
+
+    def update_Q(self, a, reward):
+        self.Q[a] += self.alpha * (reward - self.Q[a])  # Q 更新公式
+
+# 主实验函数
+def main(runs=2000, steps=1000):
+    avg_rewards_1 = np.zeros(steps)  # 乐观初始值策略
+    avg_rewards_2 = np.zeros(steps)  # ε-贪婪策略
+
+    for run in range(runs):
+        bandit = SlotMachine()
+        agent1 = Agent(Q_init=5, epsilon=0)        # 乐观贪婪
+        agent2 = Agent(Q_init=0, epsilon=0.1)      # ε-贪婪
+
+        rewards1 = []
+        rewards2 = []
+
+        for t in range(steps):
+            # Agent 1
+            a1 = agent1.choose_action()
+            r1 = bandit.reward(a1)
+            agent1.update_Q(a1, r1)
+            rewards1.append(r1)
+
+            # Agent 2
+            a2 = agent2.choose_action()
+            r2 = bandit.reward(a2)
+            agent2.update_Q(a2, r2)
+            rewards2.append(r2)
+
+        avg_rewards_1 += np.array(rewards1)
+        avg_rewards_2 += np.array(rewards2)
+
+    # 求平均
+    avg_rewards_1 /= runs
+    avg_rewards_2 /= runs
+
+    # 绘图
+    plt.figure(figsize=(10, 6))
+    plt.plot(avg_rewards_1, label='Optimistic Greedy Q=5, ε=0')
+    plt.plot(avg_rewards_2, label='ε-Greedy Q=0, ε=0.1')
+    plt.xlabel("Steps")
+    plt.ylabel("Average Reward")
+    plt.title("Optimistic Initial Values vs ε-Greedy")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+# 运行实验
+if __name__ == "__main__":
+    main()
 
 ```
 
