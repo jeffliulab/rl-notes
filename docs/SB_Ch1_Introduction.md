@@ -4,6 +4,8 @@
 
 Preface（前言）部分是在第一章之前的，主要讲了下该教材出第二版的一些原因，读者看了之后觉得有很多点非常值得看一下，便进行了总结整理，并附上一个Sutton写的非常经典的文章《The Bitter Lesson》的总结。
 
+书本原文可以在CMU官网找到：[强化学习导论第二版开源PDF版](https://www.andrew.cmu.edu/course/10-703/textbook/BartoSutton.pdf)
+
 ---
 
 ### 第二版（2018）前言

@@ -2,11 +2,15 @@ site_name: 强化学习笔记
 
 theme:
   name: material
+  features:
+    - navigation.sections
+    # - navigation.expand
 
 nav:
   - 首页: index.md
-  - 第一章-序言与介绍: Ch1_Introduction.md
-  - 第二章-多臂老虎机: Ch2_Multi-armed_Bandits.md
+  - 强化学习导论: 
+    - 第一章-序言与介绍: SB_Ch1_Introduction.md
+    - 第二章-多臂老虎机: SB_Ch2_Multi-armed_Bandits.md
 
 markdown_extensions:
   - attr_list
