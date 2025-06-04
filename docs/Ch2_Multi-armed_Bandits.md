@@ -1664,83 +1664,87 @@ $$
 
 1. **应用商法则（quotient rule）**
 
-   $$
-   \frac{\partial}{\partial\,H_t(a)}\Bigl[\tfrac{f(x)}{g}\Bigr]
-   = \frac{\displaystyle \frac{\partial\,f(x)}{\partial\,H_t(a)}\,g \;-\; f(x)\,\frac{\partial\,g}{\partial\,H_t(a)}}{\,g^2\,}.
-   $$
+$$
+\frac{\partial}{\partial\,H_t(a)}\Bigl[\tfrac{f(x)}{g}\Bigr]
+= \frac{\displaystyle \frac{\partial\,f(x)}{\partial\,H_t(a)}\,g \;-\; f(x)\,\frac{\partial\,g}{\partial\,H_t(a)}}{\,g^2\,}.
+$$
+
 2. **计算 $\displaystyle \frac{\partial\,f(x)}{\partial\,H_t(a)}$**
 
-   $$
-   f(x) = e^{H_t(x)}
-   \;\Longrightarrow\;
-   \frac{\partial\,f(x)}{\partial\,H_t(a)}
-   = \frac{\partial}{\partial H_t(a)}\,e^{H_t(x)}
-   = e^{H_t(x)} \,\mathbb{1}_{\,a = x}
-   = f(x)\,\mathbb{1}_{\,a = x}.
-   $$
+$$
+f(x) = e^{H_t(x)}
+\;\Longrightarrow\;
+\frac{\partial\,f(x)}{\partial\,H_t(a)}
+= \frac{\partial}{\partial H_t(a)}\,e^{H_t(x)}
+= e^{H_t(x)} \,\mathbb{1}_{\,a = x}
+= f(x)\,\mathbb{1}_{\,a = x}.
+$$
+
 3. **计算 $\displaystyle \frac{\partial\,g}{\partial\,H_t(a)}$**
 
-   $$
-   g = \sum_{y=1}^k e^{H_t(y)}
-   \;\Longrightarrow\;
-   \frac{\partial\,g}{\partial\,H_t(a)}
-   = \sum_{y=1}^k \frac{\partial}{\partial H_t(a)}\,e^{H_t(y)}
-   = \sum_{y=1}^k e^{H_t(y)}\,\mathbb{1}_{\,a = y}
-   = e^{H_t(a)}.
-   $$
+$$
+g = \sum_{y=1}^k e^{H_t(y)}
+\;\Longrightarrow\;
+\frac{\partial\,g}{\partial\,H_t(a)}
+= \sum_{y=1}^k \frac{\partial}{\partial H_t(a)}\,e^{H_t(y)}
+= \sum_{y=1}^k e^{H_t(y)}\,\mathbb{1}_{\,a = y}
+= e^{H_t(a)}.
+$$
+
 4. **将以上结果代入商法则**分子的两项分别是
 
-   $$
-   \frac{\partial\,f(x)}{\partial H_t(a)}\,g
-   = \bigl[f(x)\,\mathbb{1}_{\,a = x}\bigr]\;\Bigl(\sum_{y=1}^k e^{H_t(y)}\Bigr),
-   $$
+$$
+\frac{\partial\,f(x)}{\partial H_t(a)}\,g
+= \bigl[f(x)\,\mathbb{1}_{\,a = x}\bigr]\;\Bigl(\sum_{y=1}^k e^{H_t(y)}\Bigr),
+$$
 
-   $$
-   f(x)\,\frac{\partial\,g}{\partial H_t(a)}
-   = f(x)\,\bigl[e^{H_t(a)}\bigr].
-   $$
+$$
+f(x)\,\frac{\partial\,g}{\partial H_t(a)}
+= f(x)\,\bigl[e^{H_t(a)}\bigr].
+$$
 
    因此
 
-   $$
-   \frac{\partial\,\pi_t(x)}{\partial\,H_t(a)}
-   = \frac{\,f(x)\,\mathbb{1}_{\,a = x}\,\sum_{y} e^{H_t(y)}
-   \;-\; f(x)\,e^{H_t(a)}\,}{\Bigl(\sum_{y=1}^k e^{H_t(y)}\Bigr)^2}.
-   $$
+$$
+\frac{\partial\,\pi_t(x)}{\partial\,H_t(a)}
+= \frac{\,f(x)\,\mathbb{1}_{\,a = x}\,\sum_{y} e^{H_t(y)}
+\;-\; f(x)\,e^{H_t(a)}\,}{\Bigl(\sum_{y=1}^k e^{H_t(y)}\Bigr)^2}.
+$$
+
 5. **分子提取公因式并化简**
    将分子拆为两部分：
 
-   $$
-   = \frac{\,e^{H_t(x)}\,\sum_y e^{H_t(y)}\,}{\,(\sum_y e^{H_t(y)})^2\,}\,\mathbb{1}_{\,a = x}
-   \;-\; \frac{\,e^{H_t(x)}\,e^{H_t(a)}\,}{\,(\sum_y e^{H_t(y)})^2\,}.
-   $$
+$$
+= \frac{\,e^{H_t(x)}\,\sum_y e^{H_t(y)}\,}{\,(\sum_y e^{H_t(y)})^2\,}\,\mathbb{1}_{\,a = x}
+\;-\; \frac{\,e^{H_t(x)}\,e^{H_t(a)}\,}{\,(\sum_y e^{H_t(y)})^2\,}.
+$$
 
    注意到
 
-   $$
-   \frac{e^{H_t(x)}}{\sum_y e^{H_t(y)}} = \pi_t(x),
-   \quad
-   \frac{e^{H_t(a)}}{\sum_y e^{H_t(y)}} = \pi_t(a).
-   $$
+$$
+\frac{e^{H_t(x)}}{\sum_y e^{H_t(y)}} = \pi_t(x),
+\quad
+\frac{e^{H_t(a)}}{\sum_y e^{H_t(y)}} = \pi_t(a).
+$$
 
    因此
 
-   $$
-   \frac{\,e^{H_t(x)}\,\sum_y e^{H_t(y)}\,}{\,(\sum_y e^{H_t(y)})^2\,}
-   = \pi_t(x),
-   \quad
-   \frac{\,e^{H_t(x)}\,e^{H_t(a)}\,}{\,(\sum_y e^{H_t(y)})^2\,}
-   = \pi_t(x)\,\pi_t(a).
-   $$
+$$
+\frac{\,e^{H_t(x)}\,\sum_y e^{H_t(y)}\,}{\,(\sum_y e^{H_t(y)})^2\,}
+= \pi_t(x),
+\quad
+\frac{\,e^{H_t(x)}\,e^{H_t(a)}\,}{\,(\sum_y e^{H_t(y)})^2\,}
+= \pi_t(x)\,\pi_t(a).
+$$
 
    最终得到
 
-   $$
-   \frac{\partial\,\pi_t(x)}{\partial\,H_t(a)}
-   = \pi_t(x)\,\mathbb{1}_{\,a = x}
-   \;-\; \pi_t(x)\,\pi_t(a)
-   = \pi_t(x)\,\bigl(\mathbb{1}_{\,a = x} - \pi_t(a)\bigr).
-   $$
+$$
+\frac{\partial\,\pi_t(x)}{\partial\,H_t(a)}
+= \pi_t(x)\,\mathbb{1}_{\,a = x}
+\;-\; \pi_t(x)\,\pi_t(a)
+= \pi_t(x)\,\bigl(\mathbb{1}_{\,a = x} - \pi_t(a)\bigr).
+$$
 
 至此，完整地证明了公式（1）中 Soft‐max 策略的偏导结果：
 
