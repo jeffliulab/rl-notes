@@ -1,6 +1,6 @@
 ﻿# Reinforcement Learning Notes (Chinese Version)
 
-请直接访问mkdocs文档查看文件内容：
+请直接访问mkdocs文档查看笔记内容：
 
 - https://jeffliulab.github.io/rl-notes
 
@@ -13,7 +13,7 @@ This tutorial is in Chinese and if you want a English version, I recommend follo
 
 ## 强化学习笔记介绍
 
-本强化学习笔记（https://jeffliulab.github.io/rl-notes）主要包含下面几个部分：
+本强化学习笔记主要包含下面几个部分：
 
 - （1）作为Sutton教材的中文版答案及代码分享，旨在帮助RL爱好者方便啃书。（以及通过这种方式鼓励我自己啃书）想深入学习RL的话还是需要把核心原理知识搞清楚弄明白的。部分代码和答案参考了上面我分享的两个repo，以及ChatGPT等。
 - （2）我会分享一些其他教程的重要代码
