@@ -645,21 +645,27 @@ $$
 
 - 选中的动作是 \( A_1 = A \)，此时：
 
-  $$
-  R_1 - \bar{R}_1 = 0, \quad 
-  \pi_1(A) = \frac{1}{3}, \quad 
-  \pi_1(B) = \pi_1(C) = \frac{1}{3}, \quad 
-  \alpha = 0.1
-  $$
+$$
+R_1 - \bar{R}_1 = 0, \quad 
+\pi_1(A) = \frac{1}{3}, \quad 
+\pi_1(B) = \pi_1(C) = \frac{1}{3}, \quad 
+\alpha = 0.1
+$$
+
 - 因此：
 
-  $$
-  \begin{aligned}
-  H_2(A) &= H_1(A) + 0.1 \times 0 \times \left(1 - \frac{1}{3} \right) = 0 + 0 = 0, \\
-  H_2(B) &= H_1(B) - 0.1 \times 0 \times \frac{1}{3} = 0 - 0 = 0, \\
-  H_2(C) &= H_1(C) - 0.1 \times 0 \times \frac{1}{3} = 0 - 0 = 0.
-  \end{aligned}
-  $$
+$$
+H_2(A) = H_1(A) + 0.1 \times 0 \times \left(1 - \frac{1}{3} \right) = 0 + 0 = 0,
+$$
+
+$$
+H_2(B) = H_1(B) - 0.1 \times 0 \times \frac{1}{3} = 0 - 0 = 0,
+$$
+  
+$$
+H_2(C) = H_1(C) - 0.1 \times 0 \times \frac{1}{3} = 0 - 0 = 0.
+$$
+
 - 所以在时间步 t=1 后，三条偏好依然都为 0：
 
   $$
