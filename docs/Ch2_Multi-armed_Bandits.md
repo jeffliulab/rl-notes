@@ -1,7 +1,5 @@
 # Chapter 2 多臂老虎机
 
-注：图片来源于网络，如果该图片有版权，请联系我删除。本页内容皆为公开免费的笔记，不用于盈利。
-
 ---
 
 ## 2.0 导读
@@ -538,23 +536,286 @@ Exercise 2.6和Exercise2.7参见附录Exercise部分。
 
 ---
 
-## 2.7 UCB Action Selecion
+## 2.7 上置信界动作选择
+
+在ε-greedy中，我们无法一视同仁地对待所有非greedy选项，充分探索。那么，如果非greedy动作中有成为最优动作的潜力，而我们把那些潜力更高的动作进行探索，则能提高探索-利用之间权衡的效率，也即进行更有策略的探索（而非盲目的探索）。
+
+本节介绍一种叫做**上置信界（Upper-Confidence-Bounce，简称UCB）动作选择**方法，可以**更有策略地探索，自适应地降低探索频率**。我们可以参考下面这个公式：
+
+$$
+A_t \doteq \arg\max_a \left[ Q_t(a) + \underbrace{c \sqrt{\frac{\ln t}{N_t(a)}}}_{\text{探索补偿}} \right]
+$$
+
+其中t是时间步，Nt(a)表示到时间t为止动作a被选择的次数，c>0是控制探索程度的参数。Q(a)代表动作a当前的估值，即代表利用；右半边代表探索补偿项，用于估计当前这个动作“可能被低估”的程度，也就是不确定性的上界，这也是“上置信界”这个名字的由来。
+
+这里注意，如果Nt(a)=0，则表明一个动作从未被选择过，那么作为分母的该动作就会导致该项公式无限大，所以在这种情况下认为该动作是最大化的动作；如此一来，所有未被探索过的动作都会被强制探索。在实验中，可以让Nt(a)=0的动作先被执行，从而避免除以0的错误。
+
+UCB动作选择的思想是，如果动作a被选择的次数增加，其不确定性就会减少；反之，如果动作a没有被选择，那么分母不增的情况下，分子$\ln t$反而会增加，从而作为整体的不确定性就增加了。同时，系数c代表置信度的水平。
+
+随着时间的增加，那些估值低但是又被频繁选择的动作，他们的权重会随着时间的推移而减小。直观来讲，UCB筛选动作的思维方式如下：
+
+| 动作情况                    | UCB值    | UCB策略    |
+| --------------------------- | -------- | ---------- |
+| 估值高+探索项低             | 大       | 常选       |
+| 估值低+被频繁选择（确认差） | 小       | 慢慢淘汰   |
+| 估值低+很少被选（不确定）   | 可能变大 | 有机会就选 |
+
+我们可以做一个简单的实验，实验代码见Code 2.4 UCB：
+
+![1748979001709](image/Ch2_Multi-armed_Bandits/1748979001709.png){style="display:block; margin:auto; width:600px;"}
+
+可以看到，在10臂老虎机测试中，UCB的表现比ε-greedy更好。但是书中也提出，UCB方法更难推广到老虎机之外的一般强化学习问题中，其主要难点包括：
+
+* UCB难以处理非平稳问题
+* UCB难以处理大状态空间
+
+因此UCB的实际应用情况较小，其可以被认为是针对老虎机问题的一个优化解。
+
+本小节的Exercise2.8见Exercise附录部分的解答。
 
 ---
+
+## 2.8 梯度赌博机算法
+
+在上一节中，我们介绍了 **UCB（上置信界）方法** ，它通过结合当前动作的价值估计和不确定性（通常用时间步与动作选择次数的对数比值来衡量）来进行动作选择。该方法每次选择一个具有最大潜力上限的 **确定性动作** ，从而在探索和利用之间实现权衡。
+
+在本节中，我们将介绍另一种同样考虑不同动作的潜力，但是却采用了另外一种不同的策略方法 ： **梯度赌博机算法（Gradient Bandit Algorithms）****。与UCB方法不同的是，它不计算动作值函数，而是通过学习每个动作的偏好值，并基于这些偏好生成一个概率分布进行采样，从而进行 随机策略选择 **。这一方法不仅具备更大的 **普适性** （如可扩展到策略学习、连续动作空间等），还可以通过适当设计（如使用固定步长和基准线） **适应非平稳环境** 。
+
+这种方法在强化学习中叫做**基于策略的方法（policy-based method）**，而之前小节中学习的估算动作价值的方法叫做**基于值的方法（value-based method）**。本节介绍的就是一种最简单的基于策略的方法，或者说一种最简单的策略梯度方法。
+
+下面我们来看一下这个方法。首先，我们考虑为每个动作$a$学习一个数值偏好（preference），记作$H_t(a) \in \mathbb{R}$。偏好值越大，该动作被选择的频率就越高。请注意，这种偏好本身并没有任何关于奖励的含义。重要的是动作之间的相对偏好。
+
+也就是说，该方法不需要直接估计值，而是学习对每个动作的偏好，然后按照一个概率策略来选择动作。比如说，假设所有动作的偏好是1000，那么他们之间就不存在相对的偏好差异了，因而在本方法下，也就对动作概率没有影响了。动作的选择概率由一个**软最大分布（soft-max distribution，例如Gibbs或Boltzmann分布）** 决定，如下所示：
+
+$$
+\Pr\{A_t = a\} \doteq \frac{e^{H_t(a)}}{\sum_{b=1}^{k} e^{H_t(b)}} \doteq \pi_t(a),
+$$
+
+其中$\pi_t(a)$表示在时刻t选择动作a的概率。初始时，所有动作的偏好都是一样的，因此每个动作被选择的概率就是相同的。
+
+*注：这里书中插了一个关于数学证明的Exercise 2.9，详见Exercise附录部分。*
+
+对于soft-max动作偏好，有一种**基于随机梯度上升（stochastic gradient ascent）的自然学习算法（natural learning algorithm）**。在每一步中，在选择了动作At并接收到奖励Rt后，动作偏好会按照以下方式更新：
+
+$$
+\begin{aligned}
+H_{t+1}(A_t) &\doteq H_t(A_t) + \alpha (R_t - \bar{R}_t)(1 - \pi_t(A_t)), \text{and} \\
+H_{t+1}(a) &\doteq H_t(a) - \alpha (R_t - \bar{R}_t) \pi_t(a), \quad \text{for all } a \ne A_t,
+\end{aligned}
+$$
+
+其中：
+
+* $\alpha>0$是步长参数（step-size parameter）
+* $\bar{R}_t \in \mathbb{R}$表示在时间t时的奖励平均值，不包括当前奖励（即$\bar{R}_1 \doteq R_1$）；$\bar{R}_t$作为基准线（baseline），用来衡量当前奖励，如果$R_t$高于基准线，则将来选择该动作的概率增加，否则降低。
+* $H_t(a)$表示在时间步t，动作a的偏好值（preference），在前文中已经讲过了
+
+对于没接触过该类型公式的人而言，这个概念可能会比较晦涩难懂，下面举一个例子来说明：
+
+**【例】** 假设我们有3个老虎机，记为A、B、C，他们的真实奖励分布如下（在该问题中，假设取样时依然有一个方差为1的正态的偏差）：
+
+* A: 1.0
+* B: 1.5（最好）
+* C: 0.5
+
+当然，对于agent，这个真实奖励是看不到的。现在，agent采用梯度赌博机算法：
+
+* 初始偏好值：$H_1(A) = H_1(B) = H_1(C) = 0$
+* 学习率：$\alpha = 0.1$
+* 奖励基准线：用平均奖励$\bar{R}_t$来估计，初始设为0
+
+第一步，计算策略概率（soft-max）。因为偏好全部为0，因此：
+
+$$
+\pi_1(A) = \pi_1(B) = \pi_1(C) = \frac{e^0}{e^0 + e^0 + e^0} = \frac{1}{3}
+$$
+
+第二步，根据概率，随机选择一个动作；因为三个策略的概率都是1/3，所以这里假设我们随机选中了A。
+
+第三步，执行动作，获得奖励，假设经过噪音最终的奖励是1.2，即R1=1.2，那么最终平均奖励$\bar{R}_1 = 1.2$，在此基础上我们就可以更新公式：
+
+$$
+\begin{aligned}
+H_{t+1}(A_t) &\doteq H_t(A_t) + \alpha (R_t - \bar{R}_t)(1 - \pi_t(A_t)), \text{and} \\
+H_{t+1}(a) &\doteq H_t(a) - \alpha (R_t - \bar{R}_t) \pi_t(a), \quad \text{for all } a \ne A_t,
+\end{aligned}
+$$
+
+将 \( t = 1 \) 的数据代入：
+
+- 选中的动作是 \( A_1 = A \)，此时：
+
+  $$
+  R_1 - \bar{R}_1 = 0, \quad 
+  \pi_1(A) = \frac{1}{3}, \quad 
+  \pi_1(B) = \pi_1(C) = \frac{1}{3}, \quad 
+  \alpha = 0.1
+  $$
+- 因此：
+
+  $$
+  \begin{aligned}
+  H_2(A) &= H_1(A) + 0.1 \times 0 \times \left(1 - \frac{1}{3} \right) = 0 + 0 = 0, \\
+  H_2(B) &= H_1(B) - 0.1 \times 0 \times \frac{1}{3} = 0 - 0 = 0, \\
+  H_2(C) &= H_1(C) - 0.1 \times 0 \times \frac{1}{3} = 0 - 0 = 0.
+  \end{aligned}
+  $$
+- 所以在时间步 t=1 后，三条偏好依然都为 0：
+
+  $$
+  H_2(A) = 0, \quad H_2(B) = 0, \quad H_2(C) = 0
+  $$
+
+上述三步就算是timestep=1的情况下的计算步骤。后续保持重复这三个步骤就可以，我们可以把这个方法写成伪代码，并按照之前小节的设置把k设为10：
+
+```python
+Class Bandit:
+    def __init__:
+        k = 10
+        q_star = [从 N(0,1) 中采样 for i in range(k)]
+
+    def reward(action a):
+        return 从 N(q_star[a], 1) 中采样
+
+Class Agent:
+    def __init__(k, alpha):
+        H = [0] * k
+        baseline = 0
+        t = 0
+
+    def action():
+        计算 softmax 软最大概率 π
+        根据 π 抽选动作 a
+        return a
+
+    def update():
+        t += 1
+        更新 baseline
+        advantage = R_t - baseline
+        计算 π(a)
+        根据 π(a) 更新 H
+        a = action()
+        R = reward(a)
+        对 H 进行更新
+
+def main():
+    2000次试验:
+        1000个timestep:
+            a = agent.action()
+            R = bandit.reward(a)
+            agent.update(a, R)
+
+```
+
+把上述伪代码翻译成python代码，具体代码参见**Code 2.5 梯度老虎机**。实验结果如下所示：
+
+![1748988496171](image/Ch2_Multi-armed_Bandits/1748988496171.png){style="display:block; margin:auto; width:600px;"}
+
+![1748988532481](image/Ch2_Multi-armed_Bandits/1748988532481.png){style="display:block; margin:auto; width:600px;"}
+
+从实验结果中能看出来，有baseline的梯度老虎机的表现优于无baseline的情况。
+
+注：这里书中插了关于梯度老虎机算法的数学深入讲解，介绍了该算法的本质就是对期望奖励进行随机梯度上升。详见**Math 2.5 作为随机梯度上升的梯度赌博机算法**。
+
+---
+
+## 2.9 关联搜索（情境赌博机）
+
+本节探讨关联搜索（Associative Search），或说情境赌博机（ Contextual Bandits）。在之前的小节中，我们探讨的都是非关联任务，即不需要将不同情境与不同动作关联起来。比如说，agent要么在任务是平稳的状态下寻找最佳动作，要么就是在非平稳的状态下尝试追踪随着时间变化的最佳动作。
+
+然而，对于更加一般的强化学习任务，情况往往不止一种，从而在学习目标中将包含情境：在特定情境中，能够选出最佳动作的策略。
+
+举例来说，假设有3台除了颜色（比如红绿蓝三台）外，臂数都是10个的老虎机，他们分别有着不同的真实奖励分布。如果不考虑颜色，只考虑k臂老虎机本身，那么agent将无法通过学习得到正确的策略，因而必须将情境（老虎机的颜色）加入到学习目标中。然后在学习过程中，当遇到的是红色的时候，agent只能继续从红色老虎机的臂中选择，然后获得红色老虎机的动作值函数。这个时候值函数将包括情境，一般记为$Q(s,a)$，其中s代表state（状态），也就是我们这里讨论的情境。
+
+*本节练习：书中的Exercise 2.10，详见附录。*
+
+---
+
+
+
+## 2.10 Summary
+
+在本章中，我们介绍了几种平衡探索与利用的简单方法，我们对核心公式进行一个汇总复习：
+
+**（1）epsilon-greedy方法**
+
+- 选择最优动作的概率：
+
+  $$
+  P(a = a^*) = 1 - \varepsilon
+  $$
+- 随机选择动作的概率：
+
+  $$
+  P(a) = \frac{\varepsilon}{k}, \quad \text{对于 } a \ne a^*
+  $$
+
+**（2）乐观初始值法**
+
+- 初始化时设置：
+
+  $$
+  Q_1(a) = Q_{\text{high}}, \quad \text{使得所有动作看起来很优}
+  $$
+
+**（3）UCB（Upper Confidence Bound）方法**
+
+- 动作选择规则：
+
+  $$
+  A_t = \arg\max_a \left[ Q_t(a) + c \cdot \sqrt{\frac{\ln t}{N_t(a)}} \right]
+  $$
+
+  - $Q_t(a)$：动作 $a$ 的当前平均奖励
+  - $N_t(a)$：动作 $a$ 被选择的次数
+  - $c$：控制探索程度的超参数
+
+**（4）梯度方法（Gradient Bandit）**
+
+- 使用 softmax 分布选择动作：
+
+  $$
+  P(a) = \frac{e^{H_t(a)}}{\sum_b e^{H_t(b)}}
+  $$
+
+  - $H_t(a)$：动作偏好
+- 偏好值更新（使用基准 $\bar{R}_t$）：
+
+  $$
+  H_{t+1}(a) = H_t(a) + \alpha (R_t - \bar{R}_t) (\mathbb{1}_{a=A_t} - P(a))
+  $$
+
+
+书中给出了上述四种方法在多臂老虎机问题中的表现：
+
+![1748996655115](image/Ch2_Multi-armed_Bandits/1748996655115.png)
+
+读者在这里懒得复现了，分别的代码都在Code附录中了，感兴趣的同学可以自己尝试写在一个文件中然后绘图对比。从书中给出的这张图能看出来，这四种方法UCB的表现是最好的。图中包含了参数变化，统一用k=10作为测试环境，所以对比是比较公平的。这种对比图叫做**参数研究图（parameter study），可以对比不同算法在不同参数下的平均表现。** 
+
+同时，我们在评价一个方法时，不能只看他在最佳参数值的时候的表现，还要看他对参数变化的敏感程度。上述四种方法在该问题中都对参数不太敏感，表现稳定。**参数不敏感的算法更鲁棒（robust），更适合实际应用，因为现实中调参很难。**
+
+尽管这四种方法已经足够好来解决k臂老虎机问题，但是我们仍未找到完全满意的解决方案来平衡探索与利用。还有一个被广泛研究的探索-利用平衡方法叫做Gittins指数（Gittins Index），这是一种贝叶斯方法（Beyesian Methods）。尽管贝叶斯方法的计算过程通常较为复杂，但是对于某些特殊分布（称为共轭先验 conjugate priors）计算会变得简单。一种可行的方法是使用后验采样法（posterior sampling）或Thompson采样法，实验发现，这种方法的表现接近甚至优于本章介绍的所有方法。
+
+在贝叶斯的设定中，甚至可以计算探索-利用的最优平衡方案：你可以为每个可能动作计算其获得即时奖励的概率，以及未来所有后验分布变化的概率；这些不断变化的分布形成了问题的信息状态（information state）。但是在实践中，这个树的增长速度极快，需要通过近似方法进行高效逼近，这相当于把老虎机问题转化为完整强化学习问题。这个话题超出了本书的范围，如果后续有机会的话在完成本书的精读后读者可能会继续探讨这些额外的话题。（挖坑ing）
+
+*本节练习：书中的Exercise 2.11，详见附录。*
+
+---
+
+
+
 
 ## 附：Exercise
 
 ### Exercise 2.1 计算贪婪动作选择概率
 
-问：在练习ε-greedy动作选择中，假设有两个动作，且ε=0.5，那么选择贪婪动作的概率是多少？
+**问：**在练习ε-greedy动作选择中，假设有两个动作，且ε=0.5，那么选择贪婪动作的概率是多少？
 
-答：如果epsilon=0.5，那么很显然有0.5的概率进行探索，并由1-0.5=0.5的概率选择贪婪动作。但是要注意，在随机探索的时候，也有可能选中贪婪动作，所以贪婪概率的总概率一般计算为：
-
+**答：**如果epsilon=0.5，那么很显然有0.5的概率进行探索，并由1-0.5=0.5的概率选择贪婪动作。但是要注意，在随机探索的时候，也有可能选中贪婪动作，所以贪婪概率的总概率一般计算为：
 
 $$
 \text{贪婪动作的概率} = (1 - \varepsilon) + \frac{\varepsilon}{k} = (1 - 0.5) + \frac{0.5}{2} = 0.5 + 0.25 = 0.75
 $$
-
 
 ---
 
@@ -596,9 +857,9 @@ $$
 
 ![1748812637285](image/Ch2_Multi-armed_Bandits/1748812637285.png){style="display:block; margin:auto; width:800px;"}
 
-**问：**对于图中所示的对比实验中，哪一种方法在长期的表现最好？他会好多少？您能用定量的方式表达吗？
+**问：** 对于图中所示的对比实验中，哪一种方法在长期的表现最好？他会好多少？您能用定量的方式表达吗？
 
-**答：**这道题有点意思，要求从数学角度分析。虽然图中明显ε=0.1的情况表现最好，但是从数学角度来看的话，如果进行无限时间步，即$t \to \infty$，那么样本平均估计在有探索的情况下将收敛到各个动作的真实值，即：
+**答：** 这道题有点意思，要求从数学角度分析。虽然图中明显ε=0.1的情况表现最好，但是从数学角度来看的话，如果进行无限时间步，即$t \to \infty$，那么样本平均估计在有探索的情况下将收敛到各个动作的真实值，即：
 
 $$
 Q_t(a) \to q_*(a)
@@ -664,9 +925,9 @@ $$
 
 ### Exercise 2.4 可变的步长参数表示
 
-**问：**如果步长参数$\alpha_n$不是常数，那么估计值$Q_n$是先前接收到的奖励得加权平均，不过其加权方式不同于公式2.5节中给出的形式。那么，在更一般的情况下，也就是步长可变的情况下，每一个先前奖励得权重是多少？请用一系列步长参数来表达这些权重，作为对2.5节中的公式的一般化。
+**问：** 如果步长参数$\alpha_n$不是常数，那么估计值$Q_n$是先前接收到的奖励得加权平均，不过其加权方式不同于公式2.5节中给出的形式。那么，在更一般的情况下，也就是步长可变的情况下，每一个先前奖励得权重是多少？请用一系列步长参数来表达这些权重，作为对2.5节中的公式的一般化。
 
-**答：**先回顾一下题目中所说的2.5节中的公式：$Q_n = (1 - \alpha)^n Q_0 + \sum_{i=1}^n \alpha (1 - \alpha)^{n - i} R_i$，这个公式表示Qn实际上是一个带有衰减的指数加权平均数。
+**答：** 先回顾一下题目中所说的2.5节中的公式：$Q_n = (1 - \alpha)^n Q_0 + \sum_{i=1}^n \alpha (1 - \alpha)^{n - i} R_i$，这个公式表示Qn实际上是一个带有衰减的指数加权平均数。
 
 如果步长$\alpha_n$不是常数，估计值Qn仍然是所有过去奖励Ri的加权平均，但是每个奖励的权重由不同的步长序列决定：
 
@@ -688,7 +949,7 @@ $$
 
 ### Exercise 2.5 非平稳实验
 
-**编程题：**设计一个实验，以演示样本平均方法在非平稳问题上所遇到的困难，具体要求如下：
+**编程题：** 设计一个实验，以演示样本平均方法在非平稳问题上所遇到的困难，具体要求如下：
 
 1. 多臂老虎机的k依然为10
 2. 令所有动作的真实价值$q_*(a)$一开始都相等
@@ -769,7 +1030,7 @@ def main():
 
 ### Exercise 2.7 设计一个避免初始偏差的常数步长系数
 
-**问：** 
+**问：**
 
 在本章的大多数内容中，我们使用样本平均值来估计动作价值，因为样本平均不会像常数步长那样产生初始偏差。然而，样本平均并不是一个完全令人满意的解决方案，因为它们在非平稳问题中可能表现较差。
 
@@ -818,6 +1079,78 @@ $$
 本题的详细说明见Math 2.4 无偏常数步长更新的指数加权平均系数设计。
 
 ---
+
+### Exercise 2.8 UCB峰值
+
+**问：** 在书中的Figure2.4中（如下图所示），UCB在第11步时出现了一个明显的峰值，请解释为什么会出现这个峰值，以及为什么这个峰值后又迅速下降了？提示：如果令c=1，那么这个峰值不会那么明显。
+
+![1748979236460](image/Ch2_Multi-armed_Bandits/1748979236460.png){style="display:block; margin:auto; width:600px;"}
+
+**答：** 因为k=10，根据UCB公式，前10步相当于把所有的动作先尝试了一遍。在第11步，因为所有动作都被尝试了一遍，他们现在的UCB值的Nt(a)都为1，此时所有臂的探索补偿都是相同的，都是$c \sqrt{\frac{\ln(11)}{1}}$。因此，第11步一定会选择在初次抽样中侥幸较高的臂，但是该臂一旦被选择，他的Nt(a)就会增加，从而导致探索补偿降低，因此这里的奖励会出现短暂的下降。一直到整体探索补偿都大于其他臂的UCB值得时候，它才会被再次重新选择并被持续选择。
+
+值得注意的是，随着t得不断增长，可以认为Nt(a)=O(t)，因此当t增大的时候，探索补偿最终会逐渐趋近于0。换句话说，当t很大的时候，这个探索补偿项将几乎不起作用，从而导致UCB策略变成一个近似greedy的策略。
+
+至于c=1时峰值变小，是因为c相当于探索补偿的系数，因此如果把c减少，就是将补偿整体减少。
+
+---
+
+### Exercise 2.9 数学证明题
+
+**证：** soft-max分布在只有两个动作的情况下，等价于常用于统计和神经网络中的logistic函数或sigmoid函数。
+
+**答：** 设两个动作分别为0和1，那么：
+
+$$
+\mathbb{P}(A_t = 1) = \frac{e^{H_t(1)}}{e^{H_t(1)} + e^{H_t(0)}} = \frac{1}{1 + e^{-x}},
+$$
+
+其中$x = H_t(1) - H_t(0)$表示相对于动作0的动作1的偏好程度。
+
+---
+
+### Exercise 2.10 情境老虎机任务
+
+**问：**
+
+假设你面临一个双臂赌博机任务，其真实动作价值会在每个时间步之间随机变化。具体地，假设在任意时间步下，动作 1 和动作 2 的真实价值要么以概率 0.5 分别是 10 和 20（称为情形 A），要么以概率 0.5 分别是 90 和 80（称为情形 B）。
+
+1. 如果你在任何时刻都无法分辨当前处于哪种情形，那么你能够获得的最优期望奖励是多少？你应当怎样选择动作才能达到这个期望？
+2. 现在假设在每个时间步，你都被告知自己正处于情形 A 还是情形 B（虽然你依然不知道对应动作的真实价值具体是多少）。这是一个关联搜索任务。在这种情况下，你能够获得的最优期望奖励是多少？你应当怎样选择动作才能达到它？
+
+**答：**
+
+假设题目描述的就是一个常规的平稳问题。
+
+对于第一问，如果无法分辨情况，那么可以计算两个动作的期望，会发现动作1和动作2的总期望价值都是50。那么无论选择什么策略，其最优期望都是一样的，那么只选1、只选2、每步各50%的概率选都是最优的。
+
+对于第二问，可以设置Q(s,a)来记录上述四种情况：
+
+| 动作1和动作2的真实价值 | 动作1     | 动作2     |
+| ---------------------- | --------- | --------- |
+| 情形A：0.5的概率是     | Q(A,1)=10 | Q(A,2)=20 |
+| 情形B：0.5的概率是     | Q(B,1)=90 | Q(B,2)=80 |
+
+在这种情况下，很容易计算出最优奖励期望是$0.5 \times 20 + 0.5 \times 90 = 55$。在不知道真实价值的情况下，按照上述Q(s,a)的设置，在观测的时候增加一个对情形的观测，记录的时候注意对号入座就行了，其他的和之前学习的内容没什么分别。
+
+---
+
+### Exercise 2.11 非平稳状态下的参数研究图
+
+**编程题：**请针对**Exercise 2.5 非平稳实验**中描述的非平稳情形，绘制一张**参数研究图**。要求如下：
+
+* 要包括使用常数步长（constant-step-size）的  **ε-greedy 算法** ，其中 $α = 0.1$。
+* 每个实验运行 200,000步。
+* 对于每个算法和参数设置，其性能评估指标应为**最近 100,000 步中的平均奖励 。**
+
+**答：**
+
+详细代码参见Code 2.6，读者用ChatGPT写了一个GPU加速的版本，不然普通版本看了下要10个小时才能运行完。结果如下:
+
+
+
+---
+
+
 
 ## 附：Math
 
@@ -1142,7 +1475,7 @@ $$
 
 **2. 详细证明：该系数无初始偏差且构成指数加权平均**
 
-下面在已知 $\bar o_n$、$\beta_n$ 定义的基础上，逐步证明所需性质。
+下面在已知 $\bar o_n$、$\beta_n$ 定义的基础上，逐步证明所需性质。证明无初始偏差可以抹去人为初始值的影响；证明归一性可以说明这些权重构成一个真正的加权平均，即历史奖励的影响既按指数衰减又总权重为1，不会被认为放大或缩小。
 
 **2.1 求解 $\bar o_n$ 的闭式表达**
 
@@ -1290,6 +1623,228 @@ $$
 从而 $Q_n$ 是一个**无初始偏差的指数加权平均值**。
 
 这个“无偏常数步长+指数加权”的设计技巧在强化学习中是一个非常经典的方案，一方面它抹掉了初始值（即在算法设计中初始人为给定的Q0）而让第一步的值直接等于R1，这样可以让观测估计值直接来自于真实数据而非人工设定；另一方面又保留了对新信息迅速更新的常数步长优点。
+
+---
+
+### Math 2.5 作为随机梯度上升的梯度赌博机算法
+
+我们可以通过将梯度赌博机算法理解为对梯度上升的随机近似（stochastic approximation to gradient ascent），从而获得更深层次的见解。
+
+在精确的梯度上升（exact gradient ascent）中，每个动作偏好 $H_t(a)$ 都会按照该偏好对性能的增益大小成比例地进行增量更新：
+
+$$
+H_{t+1}(a) \;\dot{=}\; H_t(a) \;+\; \alpha\,\frac{\partial\,\mathbb{E}[R_t]}{\partial\,H_t(a)}, 
+\quad\text{（3）}
+$$
+
+其中这里所衡量的“性能”就是期望奖励：
+
+$$
+\mathbb{E}[R_t] \;=\; \sum_{x} \pi_t(x)\,q_*(x).
+$$
+
+- 其中 $\pi_t(x)$ 是在时刻 $t$ 选取动作 $x$ 的概率；
+- $q_*(x)$ 是动作 $x$ 的真实平均回报（但在实际问题中我们并不知道 $q_*(x)$）。
+
+而增量对性能的影响程度则是对该“性能度量”关于动作偏好 $H_t(a)$ 的偏导数。
+当然，在我们的多臂赌博机情形下，我们无法精确地执行这一“精确梯度上升”，因为我们并不知道任何一个动作的 $q_*(x)$。
+不过实际上，我们算法中的更新式在期望意义下是等价于上式（3）的，从而使得该算法成为一种随机梯度上升（stochastic gradient ascent）。
+完成这一证明所需的运算只需要初等微积分，但步骤会比较繁琐。下文先从 Soft‐max 偏导的证明开始，再回到随机更新推导。
+
+**一、计算 $\displaystyle \frac{\partial\,\pi_t(x)}{\partial\,H_t(a)}$**
+
+先考虑 Soft‐max 策略
+
+$$
+\pi_t(x)
+= \frac{e^{H_t(x)}}{\sum_{y=1}^{k} e^{H_t(y)}},
+\quad\text{（1）}
+$$
+
+记分子 $f(x)=e^{H_t(x)}$，分母 $g=\sum_{y=1}^k e^{H_t(y)}$。我们要计算
+
+$$
+\frac{\partial\,\pi_t(x)}{\partial\,H_t(a)}
+= \frac{\partial}{\partial\,H_t(a)}\Biggl[\frac{f(x)}{g}\Biggr].
+$$
+
+1. **应用商法则（quotient rule）**
+
+   $$
+   \frac{\partial}{\partial\,H_t(a)}\Bigl[\tfrac{f(x)}{g}\Bigr]
+   = \frac{\displaystyle \frac{\partial\,f(x)}{\partial\,H_t(a)}\,g \;-\; f(x)\,\frac{\partial\,g}{\partial\,H_t(a)}}{\,g^2\,}.
+   $$
+2. **计算 $\displaystyle \frac{\partial\,f(x)}{\partial\,H_t(a)}$**
+
+   $$
+   f(x) = e^{H_t(x)}
+   \;\Longrightarrow\;
+   \frac{\partial\,f(x)}{\partial\,H_t(a)}
+   = \frac{\partial}{\partial H_t(a)}\,e^{H_t(x)}
+   = e^{H_t(x)} \,\mathbb{1}_{\,a = x}
+   = f(x)\,\mathbb{1}_{\,a = x}.
+   $$
+3. **计算 $\displaystyle \frac{\partial\,g}{\partial\,H_t(a)}$**
+
+   $$
+   g = \sum_{y=1}^k e^{H_t(y)}
+   \;\Longrightarrow\;
+   \frac{\partial\,g}{\partial\,H_t(a)}
+   = \sum_{y=1}^k \frac{\partial}{\partial H_t(a)}\,e^{H_t(y)}
+   = \sum_{y=1}^k e^{H_t(y)}\,\mathbb{1}_{\,a = y}
+   = e^{H_t(a)}.
+   $$
+4. **将以上结果代入商法则**分子的两项分别是
+
+   $$
+   \frac{\partial\,f(x)}{\partial H_t(a)}\,g
+   = \bigl[f(x)\,\mathbb{1}_{\,a = x}\bigr]\;\Bigl(\sum_{y=1}^k e^{H_t(y)}\Bigr),
+   $$
+
+   $$
+   f(x)\,\frac{\partial\,g}{\partial H_t(a)}
+   = f(x)\,\bigl[e^{H_t(a)}\bigr].
+   $$
+
+   因此
+
+   $$
+   \frac{\partial\,\pi_t(x)}{\partial\,H_t(a)}
+   = \frac{\,f(x)\,\mathbb{1}_{\,a = x}\,\sum_{y} e^{H_t(y)}
+   \;-\; f(x)\,e^{H_t(a)}\,}{\Bigl(\sum_{y=1}^k e^{H_t(y)}\Bigr)^2}.
+   $$
+5. **分子提取公因式并化简**
+   将分子拆为两部分：
+
+   $$
+   = \frac{\,e^{H_t(x)}\,\sum_y e^{H_t(y)}\,}{\,(\sum_y e^{H_t(y)})^2\,}\,\mathbb{1}_{\,a = x}
+   \;-\; \frac{\,e^{H_t(x)}\,e^{H_t(a)}\,}{\,(\sum_y e^{H_t(y)})^2\,}.
+   $$
+
+   注意到
+
+   $$
+   \frac{e^{H_t(x)}}{\sum_y e^{H_t(y)}} = \pi_t(x),
+   \quad
+   \frac{e^{H_t(a)}}{\sum_y e^{H_t(y)}} = \pi_t(a).
+   $$
+
+   因此
+
+   $$
+   \frac{\,e^{H_t(x)}\,\sum_y e^{H_t(y)}\,}{\,(\sum_y e^{H_t(y)})^2\,}
+   = \pi_t(x),
+   \quad
+   \frac{\,e^{H_t(x)}\,e^{H_t(a)}\,}{\,(\sum_y e^{H_t(y)})^2\,}
+   = \pi_t(x)\,\pi_t(a).
+   $$
+
+   最终得到
+
+   $$
+   \frac{\partial\,\pi_t(x)}{\partial\,H_t(a)}
+   = \pi_t(x)\,\mathbb{1}_{\,a = x}
+   \;-\; \pi_t(x)\,\pi_t(a)
+   = \pi_t(x)\,\bigl(\mathbb{1}_{\,a = x} - \pi_t(a)\bigr).
+   $$
+
+至此，完整地证明了公式（1）中 Soft‐max 策略的偏导结果：
+
+$$
+\frac{\partial\,\pi_t(x)}{\partial\,H_t(a)}
+= \pi_t(x)\,\bigl(\mathbb{1}_{\,a = x} - \pi_t(a)\bigr).
+$$
+
+**二、精确性能梯度的推导**
+
+首先，写出关于某一动作偏好 $H_t(a)$ 的性能梯度：
+
+$$
+\frac{\partial\,\mathbb{E}[R_t]}{\partial\,H_t(a)}
+\;=\;\frac{\partial}{\partial H_t(a)}\Bigl[\sum_{x}\,\pi_t(x)\,q_*(x)\Bigr].
+$$
+
+由于 $q_*(x)$ 与 $H_t(a)$ 无关，所以可以交换求和和偏导，将偏导作用到 $\pi_t(x)$ 上：
+
+$$
+\frac{\partial\,\mathbb{E}[R_t]}{\partial\,H_t(a)}
+\;=\;\sum_{x} \;q_*(x)\,\frac{\partial\,\pi_t(x)}{\partial\,H_t(a)}.
+$$
+
+接下来，引入一个基准线（baseline） $B_t$。只要该基准线是一个与动作 $x$ 无关的标量，添加或减去它都不会改变上述梯度，因为
+
+$$
+\sum_{x} \,\frac{\partial\,\pi_t(x)}{\partial\,H_t(a)} \;=\; 0,
+$$
+
+这是因为 $\sum_x \pi_t(x) = 1$ 恒成立，对 $H_t(a)$ 求偏导时，各 $\pi_t(x)$ 的增量正负抵消，和为零。
+
+于是可以在原式中任意减去 $B_t$ 而不改变结果：
+
+$$
+\frac{\partial\,\mathbb{E}[R_t]}{\partial\,H_t(a)}
+\;=\;\sum_{x} \bigl[q_*(x) - B_t\bigr]\;\frac{\partial\,\pi_t(x)}{\partial\,H_t(a)}.
+$$
+
+这里 $B_t$ 称为基准线（baseline），只要它不依赖动作 $x$，都不会影响梯度的总和。
+
+**三、将梯度写成期望形式**
+
+为了把上式变成期望的形式，将每一项乘以 $\displaystyle \frac{\pi_t(x)}{\pi_t(x)}$，从而可以写成对随机变量 $A_t$ 的一次期望：
+
+$$
+\frac{\partial\,\mathbb{E}[R_t]}{\partial\,H_t(a)}
+\;=\;\sum_{x}\,\pi_t(x)\,\bigl[q_*(x) - B_t\bigr]\;\frac{\tfrac{\partial\,\pi_t(x)}{\partial\,H_t(a)}}{\pi_t(x)}.
+$$
+
+这样一来，右边便是一个关于“在时刻 $t$ 选中动作 $x$ 的随机变量 $A_t$”的期望：
+
+$$
+\frac{\partial\,\mathbb{E}[R_t]}{\partial\,H_t(a)}
+\;=\;\mathbb{E}\Bigl[\,(q_*(A_t) - B_t)\,\frac{\partial\,\pi_t(A_t)}{\partial\,H_t(a)} \;/\;\pi_t(A_t)\Bigr].
+$$
+
+在抽样时我们所获得的即时奖励 $R_t$ 是从“动作 $x$ 的真实分布”中采样得到的，因此可以将 $q_*(A_t)$ 用 $R_t$ 的无偏估计替换，并把 $B_t$ 用累计平均奖励 $\bar{R}_t$ 近似（其实任何不依赖 $A_t$ 的标量都可）。于是得到：
+
+$$
+\frac{\partial\,\mathbb{E}[R_t]}{\partial\,H_t(a)}
+\;=\;\mathbb{E}\Bigl[\,(R_t - \bar{R}_t)\,\frac{\partial\,\pi_t(A_t)}{\partial\,H_t(a)} \;/\;\pi_t(A_t)\Bigr].
+$$
+
+此时，“性能梯度”就写成了一个期望的形式，即“某次样本对梯度的贡献”的期望值。
+
+**四、随机梯度上升的样本更新**
+
+回想我们原本的目标：要把性能梯度（公式（3）中的 $\displaystyle \frac{\partial\,\mathbb{E}[R_t]}{\partial\,H_t(a)}$）写成一个每一步都能采样的表达式，然后在每个时间步用该样本对偏好作增量更新。按照上一步的推导，若我们用一个随机样本去近似上式期望，就得到：
+
+$$
+H_{t+1}(a)
+\;=\; H_t(a)\;+\;\alpha\,\bigl(R_t - \bar{R}_t\bigr)\;\frac{\partial\,\pi_t(A_t)}{\partial\,H_t(a)}\;/\;\pi_t(A_t),
+\quad \text{对所有 }a.
+$$
+
+再结合以下在**一**中已证明的结论：
+
+$$
+\frac{\partial\,\pi_t(x)}{\partial\,H_t(a)}
+\;=\;\pi_t(x)\,\bigl(\mathbb{1}_{\,a=x} - \pi_t(a)\bigr),
+$$
+
+即可得到熟悉的梯度赌博机更新公式（即公式（2））：
+
+$$
+H_{t+1}(a)
+= H_t(a)
++ \alpha\,(R_t - \bar{R}_t)\,\bigl(\mathbb{1}_{\,a = A_t} - \pi_t(a)\bigr),
+\quad \text{对所有 }a,
+\tag{2}
+$$
+
+其中 $\mathbb{1}_{\,a = A_t}$ 为指示符：若 $a$ 等于当时选中的动作 $A_t$，则为 1，否则为 0。至此，我们在随机梯度上升的框架下推导出了“梯度赌博机算法”的更新式。
+
+至此，我们已经展示了：梯度赌博机算法在期望意义下的更新等同于对“期望奖励”进行梯度上升，因而它是一种随机梯度上升的实例，具有良好的收敛性质。
+
+需要注意的是，在上述推导中，对“基准线（$B_t$）”的唯一要求只是它不依赖于所选动作。例如，即便将 $B_t$ 设为 0，或者设为某个常数 1000，也不会改变“期望更新”的形式，因为 $\displaystyle \sum_x \frac{\partial\,\pi_t(x)}{\partial\,H_t(a)} = 0$。基准线的选取不影响期望更新，但会影响更新的方差，进而影响收敛速度（如图 2.5 所示）。通常我们将基准线选为当前时刻之前所有奖励的累计平均，这在实践中既简单又性能良好。
 
 ---
 
@@ -1649,4 +2204,275 @@ if __name__ == "__main__":
 
 ```
 
-(end)
+### Code 2.4 UCB
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+np.random.seed(42)
+
+class Bandit:
+    def __init__(self, k=10):
+        self.k = k
+        self.real_q = np.random.normal(0, 1, k)
+
+    def reward(self, a):
+        return np.random.normal(self.real_q[a], 1)
+
+
+class AgentUCB:
+    def __init__(self, k=10, c=2):
+        self.k = k
+        self.c = c
+        self.Q = np.zeros(k)
+        self.counts = np.zeros(k, dtype=int)
+        self.total_count = 0
+
+    def choose_action(self):
+        self.total_count += 1
+        ucb_values = self.Q + self.c * np.sqrt(np.log(self.total_count) / (self.counts + 1e-10))
+        zero_mask = (self.counts == 0)
+        if np.any(zero_mask):
+            return np.argmax(zero_mask)
+        return np.argmax(ucb_values)
+
+    def update(self, a, reward):
+        self.counts[a] += 1
+        step = 1 / self.counts[a]
+        self.Q[a] += step * (reward - self.Q[a])
+
+
+class AgentEpsilon:
+    def __init__(self, k=10, epsilon=0.1):
+        self.k = k
+        self.epsilon = epsilon
+        self.Q = np.zeros(k)
+        self.counts = np.zeros(k, dtype=int)
+
+    def choose_action(self):
+        if np.random.rand() < self.epsilon:
+            return np.random.randint(self.k)
+        return np.argmax(self.Q)
+
+    def update(self, a, reward):
+        self.counts[a] += 1
+        step = 1 / self.counts[a]
+        self.Q[a] += step * (reward - self.Q[a])
+
+
+def main(runs=2000, steps=1000):
+    avg_rewards_ucb = np.zeros(steps)
+    avg_rewards_eps = np.zeros(steps)
+
+    for _ in range(runs):
+        bandit = Bandit()
+        agent_ucb = AgentUCB()
+        agent_eps = AgentEpsilon(epsilon=0.1)
+
+        rewards_ucb = np.zeros(steps)
+        rewards_eps = np.zeros(steps)
+
+        for t in range(steps):
+            a_ucb = agent_ucb.choose_action()
+            r_ucb = bandit.reward(a_ucb)
+            agent_ucb.update(a_ucb, r_ucb)
+            rewards_ucb[t] = r_ucb
+
+            a_eps = agent_eps.choose_action()
+            r_eps = bandit.reward(a_eps)
+            agent_eps.update(a_eps, r_eps)
+            rewards_eps[t] = r_eps
+
+        avg_rewards_ucb += rewards_ucb
+        avg_rewards_eps += rewards_eps
+
+    avg_rewards_ucb /= runs
+    avg_rewards_eps /= runs
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(avg_rewards_ucb, label='UCB (c=2)')
+    plt.plot(avg_rewards_eps, label='Epsilon-Greedy (ε=0.1)')
+    plt.xlabel('Steps')
+    plt.ylabel('Average Reward')
+    plt.title('Average Reward: UCB vs Epsilon-Greedy')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+
+if __name__ == "__main__":
+    main()
+
+```
+
+### Code 2.5 梯度老虎机
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Gradient Bandit with optional baseline
+class Bandit:
+    def __init__(self, k=10):
+        self.k = k
+        self.q_star = np.random.normal(loc=0.0, scale=1.0, size=k)
+        self.optimal_action = np.argmax(self.q_star)
+
+    def reward(self, a):
+        return np.random.normal(loc=self.q_star[a], scale=1.0)
+
+class Agent:
+    def __init__(self, k, alpha, use_baseline=True):
+        self.k = k
+        self.alpha = alpha
+        self.use_baseline = use_baseline
+        self.H = np.zeros(k)
+        self.baseline = 0.0
+        self.t = 0
+
+    def select_action(self):
+        expH = np.exp(self.H - np.max(self.H))
+        pi = expH / np.sum(expH)
+        action = np.random.choice(self.k, p=pi)
+        return action, pi
+
+    def update(self, a, R, pi):
+        self.t += 1
+        if self.use_baseline:
+            self.baseline += (R - self.baseline) / self.t
+            advantage = R - self.baseline
+        else:
+            advantage = R
+
+        self.H[a] += self.alpha * advantage * (1 - pi[a])
+        for i in range(self.k):
+            if i != a:
+                self.H[i] -= self.alpha * advantage * pi[i]
+
+def simulate(runs=1000, time_steps=1000, k=10, alphas=[0.1, 0.4]):
+    optimal_results = {}
+    reward_results = {}
+    for alpha in alphas:
+        for use_baseline in [True, False]:
+            optimal_counts = np.zeros(time_steps)
+            reward_sums = np.zeros(time_steps)
+            for run in range(runs):
+                bandit = Bandit(k)
+                agent = Agent(k, alpha, use_baseline)
+                for t in range(time_steps):
+                    a, pi = agent.select_action()
+                    R = bandit.reward(a)
+                    agent.update(a, R, pi)
+                    reward_sums[t] += R
+                    if a == bandit.optimal_action:
+                        optimal_counts[t] += 1
+            optimal_pct = (optimal_counts / runs) * 100
+            avg_rewards = reward_sums / runs
+            label = f"{'with' if use_baseline else 'without'} baseline, α={alpha}"
+            optimal_results[label] = optimal_pct
+            reward_results[label] = avg_rewards
+    return optimal_results, reward_results
+
+# Run simulation
+opt_results, rew_results = simulate(runs=1000, time_steps=1000, k=10, alphas=[0.1, 0.4])
+
+# Plotting Optimal Action %
+plt.figure(figsize=(10, 6))
+for label, data in opt_results.items():
+    plt.plot(data, label=label)
+plt.xlabel('Steps')
+plt.ylabel('% Optimal Action')
+plt.title('Gradient Bandit: Optimal Action % over Time')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Plotting Average Rewards
+plt.figure(figsize=(10, 6))
+for label, data in rew_results.items():
+    plt.plot(data, label=label)
+plt.xlabel('Steps')
+plt.ylabel('Average Reward')
+plt.title('Gradient Bandit: Average Reward over Time')
+plt.legend()
+plt.grid(True)
+plt.show()
+```
+
+### Code 2.6 非平稳状态的参数研究图
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from tqdm import tqdm
+
+class NonstationaryBandit:
+    def __init__(self, k=10, q_init=0.0, random_walk_std=0.01):
+        self.k = k
+        self.q_true = np.ones(k) * q_init
+        self.random_walk_std = random_walk_std
+
+    def get_reward(self, action):
+        reward = np.random.normal(loc=self.q_true[action], scale=1.0)
+        self.q_true += np.random.normal(0.0, self.random_walk_std, size=self.k)
+        return reward
+
+    def optimal_action(self):
+        return np.argmax(self.q_true)
+
+class Agent:
+    def __init__(self, k=10, epsilon=0.1, alpha=0.1):
+        self.k = k
+        self.epsilon = epsilon
+        self.alpha = alpha
+        self.Q = np.zeros(k)
+
+    def select_action(self):
+        if np.random.rand() < self.epsilon:
+            return np.random.randint(self.k)
+        else:
+            max_val = np.max(self.Q)
+            candidates = np.where(self.Q == max_val)[0]
+            return np.random.choice(candidates)
+
+    def update(self, action, reward):
+        self.Q[action] += self.alpha * (reward - self.Q[action])
+
+def parameter_study(epsilon_list, n_runs=2000, n_steps=200000, eval_start=100000):
+    avg_final_rewards = []
+
+    for epsilon in tqdm(epsilon_list, desc="Parameter sweep"):
+        rewards = np.zeros(n_steps)
+
+        for _ in tqdm(range(n_runs), leave=False, desc=f"ε = {epsilon:.3f}"):
+            env = NonstationaryBandit()
+            agent = Agent(epsilon=epsilon, alpha=0.1)
+
+            for t in range(n_steps):
+                a = agent.select_action()
+                r = env.get_reward(a)
+                agent.update(a, r)
+                rewards[t] += r
+
+        rewards /= n_runs
+        final_avg_reward = np.mean(rewards[eval_start:])
+        avg_final_rewards.append(final_avg_reward)
+
+    return avg_final_rewards
+
+# 参数设置
+epsilons = np.logspace(-3, 0, num=10)  # ε from 0.001 to 1.0
+avg_rewards = parameter_study(epsilons)
+
+# 绘图
+plt.figure(figsize=(8, 5))
+plt.plot(epsilons, avg_rewards, marker='o')
+plt.xscale('log')
+plt.xlabel("ε (exploration rate)")
+plt.ylabel("Average reward (last 100k steps)")
+plt.title("Parameter Study of ε-Greedy with α=0.1 (Nonstationary Bandit)")
+plt.grid(True)
+plt.show()
+```
