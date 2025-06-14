@@ -11,7 +11,7 @@ nav:
   - 强化学习导论: 
     - 第一章-序言与介绍: SB_Ch1_Introduction.md
     - 第二章-多臂老虎机: SB_Ch2_Multi-armed_Bandits.md
-
+    - 第三章-有限MDP: SB_Ch3_Finite-MDP.md
 markdown_extensions:
   - attr_list
   - pymdownx.arithmatex:
